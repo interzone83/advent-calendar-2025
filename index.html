@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Advent Calendar 2025</title>
+
+<style>
+    body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: url('https://i.imgur.com/fZ7cF5e.jpeg') center top / cover no-repeat;
+        height: 100vh;
+        overflow-x: hidden;
+        color: white;
+        text-align: center;
+    }
+
+    #calendar-container {
+        position: relative;
+        width: 100%;
+        max-width: 900px;
+        margin: 0 auto;
+        height: 100vh;
+    }
+
+    .door {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: rgba(255, 0, 0, 0.8);
+        border: 3px solid gold;
+        font-size: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        position: absolute;
+        transition: transform 0.3s;
+        color: white;
+        font-weight: bold;
+        user-select: none;
+    }
+
+    .door:hover {
+        transform: scale(1.08);
+    }
+
+    .opened {
+        background: rgba(0, 80, 0, 0.8) !important;
+        border-color: white !important;
+    }
+
+    /* Hidden content */
+    .content {
+        display: none;
+        position: absolute;
+        top: 90px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 160px;
+        padding: 5px;
+    }
+
+    .content img {
+        width: 160px;
+        height: auto;
+        border-radius: 10px;
+    }
+
+    #testing {
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        font-size: 18px;
+    }
+</style>
+</head>
+
+<body>
+<h1>🎄 Advent Calendar 2025 🎄</h1>
+
+<label id="testing">
+    <input type="checkbox" id="testingMode"> Enable Testing Mode
+</label>
+
+<div id="calendar-container"></div>
+
+<script>
+    const container = document.getElementById("calendar-container");
+    const today = new Date().getDate();
+    const testingMode = document.getElementById("testingMode");
+
+    const imgBase = "https://drive.google.com/uc?export=download&id=";
+    const musicBase = "https://drive.google.com/uc?export=download&id=";
+
+    // These two IDs will be replaced by door number:
+    const exampleImg = "1BzNx-uXXF9b4Q2Fm497nURzu5mRXYWni";
+    const exampleMp3 = "1nox9OcFT-w4i_kvnHda1oMhgJKzpjsZ4";
+
+    // For now every door uses your example links.
+    // Later: you will give me folder structure and I will map numbers → files automatically.
+
+    // Random positions
+    function randomPos(maxWidth, maxHeight) {
+        return {
+            x: Math.random() * (maxWidth - 100) + 10,
+            y: Math.random() * (maxHeight - 200) + 50
+        };
+    }
+
+    const doors = [...Array(25).keys()].map(n => n + 1);
+
+    doors.forEach(num => {
+        const div = document.createElement("div");
+        div.className = "door";
+        div.innerText = num;
+
+        // randomize position
+        const pos = randomPos(window.innerWidth * 0.9, window.innerHeight * 0.8);
+        div.style.left = pos.x + "px";
+        div.style.top = pos.y + "px";
+
+        // content area
+        const content = document.createElement("div");
+        content.className = "content";
+
+        const img = document.createElement("img");
+        img.src = imgBase + exampleImg;  // Replace later with your numbered images
+
+        content.appendChild(img);
+        div.appendChild(content);
+
+        // click logic
+        div.onclick = () => {
+            if (!testingMode.checked && num > today) {
+                alert("You may only open door " + num + " on December " + num + "!");
+                return;
+            }
+
+            div.classList.add("opened");
+            content.style.display = "block";
+
+            setTimeout(() => {
+                const audio = new Audio(musicBase + exampleMp3);
+                audio.play();
+            }, 2000);
+        };
+
+        container.appendChild(div);
+    });
+</script>
+
+</body>
+</html>
