@@ -7,7 +7,7 @@
 
   <style>
     :root {
-      --door-size-px: 120px; /* will be overridden by JS based on screen size */
+      --door-size-px: 120px; /* Will be overridden dynamically */
       --door-border: 3px;
       --door-bg-closed: rgba(200, 0, 0, 0.95);
       --door-bg-open: rgba(0, 90, 0, 0.95);
@@ -21,8 +21,7 @@
 
     body {
       margin: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-        sans-serif;
+      font-family: Arial, sans-serif;
       background: radial-gradient(circle at top, #16291c 0%, #020b07 55%, #000 100%);
       color: #fff;
       text-align: center;
@@ -52,11 +51,10 @@
       align-items: center;
       padding: 0 1rem 0.75rem;
       flex-wrap: wrap;
-      gap: 0.5rem;
     }
 
     .testing-toggle {
-      padding: 0.3rem 0.8rem;
+      padding: 0.35rem 0.8rem;
       background: rgba(0, 0, 0, 0.35);
       border-radius: 999px;
       font-size: 0.9rem;
@@ -65,7 +63,6 @@
 
     .testing-toggle input {
       margin-right: 0.35rem;
-      transform: translateY(1px);
     }
 
     .info-pill {
@@ -87,15 +84,14 @@
       background: url("tree.jpg") center top / cover no-repeat;
       border-radius: 18px;
       overflow: hidden;
-      box-shadow: 0 14px 32px rgba(0, 0, 0, 0.7);
+      box-shadow: 0 14px 32px rgba(0,0,0,0.7);
     }
 
     .calendar::before {
       content: "";
       position: absolute;
       inset: 0;
-      background: radial-gradient(circle at center, rgba(0, 0, 0, 0.12), rgba(0, 0, 0, 0.6));
-      pointer-events: none;
+      background: radial-gradient(circle at center, rgba(0,0,0,0.12), rgba(0,0,0,0.6));
     }
 
     .door {
@@ -111,25 +107,21 @@
       cursor: pointer;
       color: #fff;
       font-weight: 700;
-      font-size: clamp(16px, calc(var(--door-size-px) * 0.3), 26px);
-      z-index: 2;
-      transition:
-        transform 0.2s ease,
-        box-shadow 0.2s ease,
-        background 0.2s ease,
-        border-color 0.2s ease;
+      font-size: clamp(16px, calc(var(--door-size-px)*0.32), 26px);
+      transition: 0.2s ease;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.7);
       overflow: hidden;
+      z-index: 2;
     }
 
     .door:hover {
       transform: scale(1.04) translateY(-3px);
-      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.9);
     }
 
     .door.open {
       background: var(--door-bg-open);
       border-color: var(--door-border-open);
-      box-shadow: 0 0 16px rgba(255, 255, 255, 0.6);
+      box-shadow: 0 0 16px rgba(255,255,255,0.6);
     }
 
     .door-number {
@@ -167,28 +159,24 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 0.7rem;
-      background: rgba(0, 0, 0, 0.45);
+      font-size: 0.65rem;
+      background: rgba(0,0,0,0.45);
       border-radius: 50%;
-      padding: 0.2rem;
       text-align: center;
-    }
-
-    footer {
-      font-size: 0.75rem;
-      opacity: 0.6;
-      padding-bottom: 0.75rem;
+      padding: 0.25rem;
     }
   </style>
 </head>
+
 <body>
+
   <h1>🎄 Advent Calendar 2025 🎄</h1>
-  <p class="subtitle">Click today’s bauble to reveal its picture. Click again to play the song.</p>
+  <p class="subtitle">Click a bauble to reveal its picture. Click again to play the song.</p>
 
   <div class="top-bar">
     <label class="testing-toggle">
       <input type="checkbox" id="testingToggle" />
-      Testing mode – ignore date lock
+      Testing mode
     </label>
     <div class="info-pill" id="dateInfo"></div>
   </div>
@@ -197,19 +185,9 @@
     <div class="calendar" id="calendar"></div>
   </div>
 
-  <footer>
-    Images: <code>images/1.png…25.png</code> · Music: <code>music/1.mp3…25.mp3</code>
-  </footer>
-
   <script>
+    const rows = [1, 2, 3, 4, 5, 5, 3, 2];  // tree-shaped layout
     const DOOR_COUNT = 25;
-    const IMAGE_PATH = "images";
-    const AUDIO_PATH = "music";
-    const IMAGE_EXT = "png";
-    const AUDIO_EXT = "mp3";
-
-    // row pattern: total 25 doors
-    const rows = [1, 2, 3, 4, 5, 5, 3, 2];
 
     const calendar = document.getElementById("calendar");
     const testingToggle = document.getElementById("testingToggle");
@@ -217,29 +195,39 @@
 
     const now = new Date();
     const today = now.getDate();
-    const month = now.getMonth(); // 11 = December
+    const month = now.getMonth(); // 0=Jan, 11=Dec
     const isDecember = month === 11;
 
     dateInfo.textContent = isDecember
       ? `Today: December ${today}`
-      : `Today isn't December – doors are date-locked unless testing mode is on.`;
+      : `Not December — doors locked unless testing mode is on`;
 
     function imgUrl(n) {
-      return `${IMAGE_PATH}/${n}.${IMAGE_EXT}`;
+      return `images/${n}.png`;
     }
 
     function audioUrl(n) {
-      return `${AUDIO_PATH}/${n}.${AUDIO_EXT}`;
+      return `music/${n}.mp3`;
     }
 
     let currentAudio = null;
+
     function playAudio(n) {
-      if (currentAudio) {
-        currentAudio.pause();
-      }
+      if (currentAudio) currentAudio.pause();
+
       const audio = new Audio(audioUrl(n));
       currentAudio = audio;
-      audio.play().catch(() => {});
+
+      audio.play().catch(err => {
+        console.warn("Audio blocked, waiting for user gesture", err);
+
+        const retry = () => {
+          audio.play().catch(e => console.error("Still blocked:", e));
+          document.body.removeEventListener("click", retry);
+        };
+
+        document.body.addEventListener("click", retry, { once: true });
+      });
     }
 
     function isUnlocked(n) {
@@ -248,98 +236,95 @@
       return today >= n;
     }
 
-    function isPastDay(n) {
+    function isPast(n) {
       if (!isDecember) return false;
       return today > n;
     }
 
-    const doorsMeta = []; // {el, num, rowIndex, colIndex}
+    const doorsMeta = [];
+    let num = 1;
 
-    // Build doors row by row
-    let doorNumber = 1;
     rows.forEach((count, rowIndex) => {
       for (let c = 0; c < count; c++) {
-        if (doorNumber > DOOR_COUNT) return;
+        if (num > DOOR_COUNT) break;
 
         const door = document.createElement("div");
         door.className = "door";
-        door.dataset.num = String(doorNumber);
-        door.dataset.locktext = `Opens on December ${doorNumber}`;
+        door.dataset.num = num;
+        door.dataset.locktext = `Opens on December ${num}`;
 
-        const numEl = document.createElement("div");
-        numEl.className = "door-number";
-        numEl.textContent = doorNumber;
-        door.appendChild(numEl);
+        const numberEl = document.createElement("div");
+        numberEl.className = "door-number";
+        numberEl.textContent = num;
+        door.appendChild(numberEl);
 
         const imgEl = document.createElement("img");
         imgEl.className = "door-image";
-        imgEl.src = imgUrl(doorNumber);
-        imgEl.alt = `Door ${doorNumber} image`;
+        imgEl.src = imgUrl(num);
         door.appendChild(imgEl);
 
-        if (isPastDay(doorNumber)) {
-          door.classList.add("open");
-        } else if (!isUnlocked(doorNumber)) {
-          door.classList.add("locked");
-        }
+        if (isPast(num)) door.classList.add("open");
+        else if (!isUnlocked(num)) door.classList.add("locked");
 
+        // Fully reliable click and audio handler
         door.addEventListener("click", () => {
-          if (!isUnlocked(doorNumber)) {
-            alert(`Door ${doorNumber} opens on December ${doorNumber}.`);
+          if (!isUnlocked(num)) {
+            alert(`Door ${num} opens on December ${num}.`);
             return;
           }
 
-          const alreadyOpen = door.classList.contains("open");
-          if (!alreadyOpen) {
+          if (!door.classList.contains("open")) {
             door.classList.add("open");
-            playAudio(doorNumber);
-          } else {
-            playAudio(doorNumber);
           }
+
+          playAudio(num);
         });
 
         calendar.appendChild(door);
-        doorsMeta.push({ el: door, num: doorNumber, rowIndex, colIndex: c });
-        doorNumber++;
+
+        doorsMeta.push({
+          el: door,
+          row: rowIndex,
+          col: c,
+          num
+        });
+
+        num++;
       }
     });
 
-    // Layout calculation: resize-friendly
+    // RESPONSIVE LAYOUT ENGINE
     function layoutDoors() {
       const rect = calendar.getBoundingClientRect();
       const w = rect.width;
       const h = rect.height;
 
-      const maxInRow = Math.max(...rows); // 5
-      // Base size: 80% of column width, capped at 150px
-      let doorSize = (w / maxInRow) * 0.8;
-      const MAX_SIZE = 150;
-      if (doorSize > MAX_SIZE) doorSize = MAX_SIZE;
-      if (doorSize < 60) doorSize = (w / maxInRow) * 0.85; // keep readable on tiny screens
+      const maxInRow = Math.max(...rows);
 
-      const gapX = doorSize * 0.15; // horizontal space between baubles
-      const gapY = doorSize * 0.25; // vertical space between rows
-      const topOffset = doorSize * 0.5; // start a bit below the top
+      let size = (w / maxInRow) * 0.8;
+      const MAX = 150;
+      if (size > MAX) size = MAX;
+      if (size < 60) size = (w / maxInRow) * 0.85;
 
-      // Push size to CSS variable
-      document.documentElement.style.setProperty("--door-size-px", `${doorSize}px`);
+      document.documentElement.style.setProperty("--door-size-px", `${size}px`);
 
-      doorsMeta.forEach(({ el, rowIndex, colIndex }) => {
-        const count = rows[rowIndex];
-        const rowWidth = count * doorSize + (count - 1) * gapX;
+      const gapX = size * 0.15;
+      const gapY = size * 0.25;
+      const topOffset = size * 0.5;
+
+      doorsMeta.forEach(({ el, row, col }) => {
+        const count = rows[row];
+        const rowWidth = count * size + (count - 1) * gapX;
         const leftStart = (w - rowWidth) / 2;
 
-        const x = leftStart + colIndex * (doorSize + gapX);
-        const y = topOffset + rowIndex * (doorSize + gapY);
+        const x = leftStart + col * (size + gapX);
+        const y = topOffset + row * (size + gapY);
 
-        const centerX = x + doorSize / 2;
-        const centerY = y + doorSize / 2;
+        const cx = x + size / 2;
+        const cy = y + size / 2;
 
-        const leftPercent = (centerX / w) * 100;
-        const topPercent = (centerY / h) * 100;
-
-        el.style.left = leftPercent + "%";
-        el.style.top = topPercent + "%";
+        el.style.left = (cx / w) * 100 + "%";
+        el.style.top = (cy / h) * 100 + "%";
         el.style.transform = "translate(-50%, -50%)";
       });
     }
@@ -347,10 +332,9 @@
     layoutDoors();
     window.addEventListener("resize", layoutDoors);
 
-    // When testing mode toggles, update locked state
     testingToggle.addEventListener("change", () => {
       doorsMeta.forEach(({ el, num }) => {
-        el.classList.toggle("locked", !isUnlocked(num) && !isPastDay(num));
+        el.classList.toggle("locked", !isUnlocked(num) && !isPast(num));
       });
     });
   </script>
