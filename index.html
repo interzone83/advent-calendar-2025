@@ -2,13 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Advent Calendar 2025</title>
+  <title>Melville's Musical Advent Calendar 2025</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <style>
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     :root {
       --door-gap: 4%;
@@ -24,7 +22,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      overflow: hidden; /* avoid scrollbars if we can */
+      overflow: hidden;
     }
 
     h1 {
@@ -38,16 +36,12 @@
       opacity: 0.9;
     }
 
-    .top-bar {
-      width: 100%;
-      max-width: 900px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0 1rem 0.5rem;
-      flex-wrap: wrap;
-      gap: 0.4rem;
-      font-size: 0.85rem;
+    /* Testing mode box moved to top-left corner */
+    .testing-wrapper {
+      position: absolute;
+      top: 0.5rem;
+      left: 0.5rem;
+      z-index: 999;
     }
 
     .testing-toggle {
@@ -58,10 +52,7 @@
       display: flex;
       align-items: center;
       gap: 0.25rem;
-    }
-
-    .info-pill {
-      opacity: 0.85;
+      font-size: 0.85rem;
     }
 
     .calendar-wrapper {
@@ -71,13 +62,10 @@
       align-items: center;
       flex: 1;
       padding-bottom: 0.5rem;
+      position: relative;
     }
 
-    /* Square calendar that fits both width & height:
-       - max 95vw wide
-       - max 75vh tall
-       So header + calendar fit on screen with no scrolling.
-    */
+    /* Square container always visible with no scrolling */
     .calendar-box {
       width: min(95vw, 75vh);
       height: min(95vw, 75vh);
@@ -88,7 +76,11 @@
       position: relative;
       width: 100%;
       height: 100%;
-      background: url("tree.jpg") center center / cover no-repeat;
+
+      /* Show more of the image width (no cropping) */
+      background: url("tree.jpg") center center / contain no-repeat;
+      background-color: #000;
+
       border-radius: 18px;
       overflow: hidden;
       box-shadow: 0 12px 28px rgba(0,0,0,0.7);
@@ -119,14 +111,10 @@
       color: #fff;
       font-weight: 700;
       font-size: clamp(16px, 2.4vw, 22px);
-      box-shadow: 0 4px 10px rgba(0,0,0,0.6);
       overflow: hidden;
       z-index: 1;
-      transition:
-        transform 0.18s ease,
-        box-shadow 0.18s ease,
-        background 0.18s ease,
-        border-color 0.18s ease;
+      transition: 0.18s ease;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.6);
     }
 
     .door:hover {
@@ -141,14 +129,11 @@
     }
 
     .door-number {
-      position: relative;
       z-index: 3;
       transition: opacity 0.22s ease;
     }
 
-    .door.open .door-number {
-      opacity: 0;
-    }
+    .door.open .door-number { opacity: 0; }
 
     .door-image {
       position: absolute;
@@ -168,26 +153,27 @@
       transform: scale(1);
     }
 
-    /* Slight stagger per row for a playful look */
-    .door.row-2 { margin-left: 6%; }
-    .door.row-3 { margin-left: -6%; }
-    .door.row-4 { margin-left: 3%; }
-    .door.row-5 { margin-left: -3%; }
+    /* Gentle stagger offsets */
+    .door.row-2 { margin-left: 4%; }
+    .door.row-3 { margin-left: -4%; }
+    .door.row-4 { margin-left: 2%; }
+    .door.row-5 { margin-left: -2%; }
 
   </style>
 </head>
 
 <body>
-  <h1>🎄 Advent Calendar 2025 🎄</h1>
-  <p class="subtitle">Click a door to reveal its picture and play its song.</p>
 
-  <div class="top-bar">
+  <!-- Testing mode box (top-left) -->
+  <div class="testing-wrapper">
     <label class="testing-toggle">
       <input type="checkbox" id="testingToggle" />
       Testing mode
     </label>
-    <div class="info-pill" id="dateInfo"></div>
   </div>
+
+  <h1>Melvilles Musical Advent Calendar 2025</h1>
+  <p class="subtitle">Click a door to reveal its picture and play its song.</p>
 
   <div class="calendar-wrapper">
     <div class="calendar-box">
@@ -198,25 +184,19 @@
   <script>
     const calendar = document.getElementById("calendar");
     const testingToggle = document.getElementById("testingToggle");
-    const dateInfo = document.getElementById("dateInfo");
 
     const now = new Date();
     const today = now.getDate();
-    const month = now.getMonth(); // 11 = December
+    const month = now.getMonth();
     const isDecember = month === 11;
-
-    dateInfo.textContent = isDecember
-      ? `Today: December ${today}`
-      : `Not December — doors locked unless testing mode is on`;
 
     function imgUrl(n) { return `images/${n}.png`; }
     function audioUrl(n) { return `music/${n}.mp3`; }
 
     const DOOR_COUNT = 25;
-    const doors = [];
 
     for (let n = 1; n <= DOOR_COUNT; n++) {
-      const rowIndex = Math.floor((n - 1) / 5) + 1; // 1–5
+      const rowIndex = Math.floor((n - 1) / 5) + 1;
 
       const door = document.createElement("div");
       door.className = "door row-" + rowIndex;
@@ -229,7 +209,6 @@
       const imgEl = document.createElement("img");
       imgEl.className = "door-image";
       imgEl.src = imgUrl(n);
-      imgEl.alt = `Door ${n} image`;
 
       const audioEl = document.createElement("audio");
       audioEl.id = "audio-" + n;
@@ -237,7 +216,6 @@
       audioEl.innerHTML = `<source src="${audioUrl(n)}" type="audio/mpeg">`;
       audioEl.style.display = "none";
 
-      // open state for past days in December
       if (isDecember && today > n) {
         door.classList.add("open");
       }
@@ -247,28 +225,21 @@
       door.appendChild(audioEl);
 
       door.addEventListener("click", () => {
-        const num = Number(door.dataset.num);
-
-        // date lock
         if (!testingToggle.checked) {
-          if (!isDecember || today < num) {
-            alert(`Door ${num} opens on December ${num}.`);
+          if (!isDecember || today < n) {
+            alert(`Door ${n} opens on December ${n}.`);
             return;
           }
         }
 
-        // open door (if not yet open)
         if (!door.classList.contains("open")) {
           door.classList.add("open");
         }
 
-        // play audio (Option B: every click)
-        const audio = document.getElementById("audio-" + num);
-        if (!audio) return;
-
+        const audio = document.getElementById("audio-" + n);
         audio.currentTime = 0;
+
         audio.play().catch(() => {
-          // if blocked, retry on next body click
           const retry = () => {
             audio.play().catch(() => {});
             document.body.removeEventListener("click", retry);
@@ -278,21 +249,8 @@
       });
 
       calendar.appendChild(door);
-      doors.push(door);
     }
-
-    // When testing mode changes, just re-lock/re-unlock visually
-    testingToggle.addEventListener("change", () => {
-      doors.forEach(door => {
-        const n = Number(door.dataset.num);
-        if (testingToggle.checked) {
-          door.classList.remove("locked");
-        } else {
-          const locked = !isDecember || today < n;
-          if (locked) door.classList.add("locked");
-        }
-      });
-    });
   </script>
+
 </body>
 </html>
