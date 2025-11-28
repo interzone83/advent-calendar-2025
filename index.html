@@ -66,14 +66,23 @@
     }
 
     .calendar {
-      position: relative;
-      width: min(95vw, 700px);
-      aspect-ratio: 3/4;
-      background: url("tree.jpg") center top / cover no-repeat;
-      border-radius: 18px;
-      overflow: hidden;
-      box-shadow: 0 14px 32px rgba(0,0,0,0.7);
-    }
+  position: relative;
+  width: min(95vw, 700px);
+
+  /* MORE VERTICAL SPACE — prevents bottom baubles from getting cut off */
+  aspect-ratio: 3 / 5;
+
+  /* SHOW ENTIRE BACKGROUND IMAGE WITHOUT CROPPING */
+  background: url("tree.jpg") center center / contain no-repeat;
+
+  /* Fill sides if image does not cover area */
+  background-color: #000;
+
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 14px 32px rgba(0,0,0,0.7);
+}
+
 
     .calendar::before {
       content: "";
