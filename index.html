@@ -6,12 +6,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <style>
-    /* ----- PAGE LAYOUT ----- */
     :root {
-      --door-size: 80px;
-      --door-border: 3px;
-      --door-bg-closed: rgba(200, 0, 0, 0.9);
-      --door-bg-open: rgba(0, 90, 0, 0.9);
+      --door-size: 250px;   /* base size for doors & images */
+      --door-border: 4px;
+      --door-bg-closed: rgba(200, 0, 0, 0.95);
+      --door-bg-open: rgba(0, 90, 0, 0.95);
       --door-border-closed: gold;
       --door-border-open: #ffffff;
     }
@@ -22,8 +21,9 @@
 
     body {
       margin: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: radial-gradient(circle at top, #133321 0%, #020b07 60%, #000000 100%);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        sans-serif;
+      background: radial-gradient(circle at top, #16291c 0%, #020b07 55%, #000 100%);
       color: #fdfdfd;
       text-align: center;
       min-height: 100vh;
@@ -33,12 +33,12 @@
     }
 
     h1 {
-      margin: 0.5rem 0 0.25rem;
+      margin: 0.6rem 0 0.2rem;
       font-size: clamp(1.8rem, 3vw, 2.4rem);
     }
 
     .subtitle {
-      margin-bottom: 0.75rem;
+      margin-bottom: 0.7rem;
       font-size: 0.95rem;
       opacity: 0.9;
     }
@@ -56,10 +56,15 @@
 
     .testing-toggle {
       font-size: 0.9rem;
-      background: rgba(0, 0, 0, 0.3);
-      padding: 0.25rem 0.6rem;
+      background: rgba(0, 0, 0, 0.35);
+      padding: 0.25rem 0.8rem;
       border-radius: 999px;
-      border: 1px solid rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .testing-toggle input {
+      transform: translateY(1px);
+      margin-right: 0.35rem;
     }
 
     .info-pill {
@@ -67,7 +72,6 @@
       opacity: 0.8;
     }
 
-    /* ----- TREE / CALENDAR AREA ----- */
     .calendar-wrapper {
       width: 100%;
       max-width: 900px;
@@ -78,30 +82,27 @@
 
     .calendar {
       position: relative;
-      width: min(90vw, 600px);
-      aspect-ratio: 3 / 4; /* keeps it tall */
+      width: min(95vw, 700px);
+      aspect-ratio: 3 / 4;
       margin: 0 auto;
       border-radius: 18px;
       overflow: hidden;
-      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
+      box-shadow: 0 14px 32px rgba(0, 0, 0, 0.7);
       background:
-        radial-gradient(circle at 15% 0%, rgba(255, 255, 255, 0.18), transparent 55%),
-        radial-gradient(circle at 85% 0%, rgba(255, 255, 255, 0.15), transparent 55%),
-        url("https://images.unsplash.com/photo-1513506003901-1e6a229e2d15?auto=format&fit=crop&w=1200&q=80")
-          center top / cover no-repeat;
-      /* ↑ Replace URL above with your own tree image if you like */
+        radial-gradient(circle at 20% 0%, rgba(255, 255, 255, 0.15), transparent 55%),
+        radial-gradient(circle at 80% 0%, rgba(255, 255, 255, 0.12), transparent 55%),
+        url("tree.jpg") center top / cover no-repeat;
+      /* ↑ Put your chosen Christmas tree image in the repo root as tree.jpg (or change this path) */
     }
 
-    /* subtle dark vignette so baubles are readable */
     .calendar::before {
       content: "";
       position: absolute;
       inset: 0;
-      background: radial-gradient(circle at center, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.55));
+      background: radial-gradient(circle at center, rgba(0, 0, 0, 0.12), rgba(0, 0, 0, 0.6));
       pointer-events: none;
     }
 
-    /* ----- DOORS ----- */
     .door {
       position: absolute;
       width: var(--door-size);
@@ -115,27 +116,27 @@
       cursor: pointer;
       color: #fff;
       font-weight: 700;
-      font-size: 1.4rem;
+      font-size: 1.7rem;
       user-select: none;
       z-index: 2;
       transition:
-        transform 0.2s ease,
-        box-shadow 0.2s ease,
-        background 0.2s ease,
-        border-color 0.2s ease;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
-      overflow: hidden; /* keeps image inside the circle */
+        transform 0.22s ease,
+        box-shadow 0.22s ease,
+        background 0.22s ease,
+        border-color 0.22s ease;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.7);
+      overflow: hidden;
     }
 
     .door:hover {
-      transform: scale(1.04) translateY(-2px);
-      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.7);
+      transform: scale(1.04) translateY(-3px);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.9);
     }
 
     .door.open {
       background: var(--door-bg-open);
       border-color: var(--door-border-open);
-      box-shadow: 0 0 16px rgba(255, 255, 255, 0.55);
+      box-shadow: 0 0 18px rgba(255, 255, 255, 0.6);
     }
 
     .door-number {
@@ -150,7 +151,7 @@
 
     .door-image {
       position: absolute;
-      inset: 4px;
+      inset: 6px;
       border-radius: 50%;
       object-fit: cover;
       opacity: 0;
@@ -159,6 +160,8 @@
         opacity 0.25s ease,
         transform 0.25s ease;
       z-index: 2;
+      width: calc(var(--door-size) - 12px);
+      height: calc(var(--door-size) - 12px);
     }
 
     .door.open .door-image {
@@ -172,9 +175,9 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 0.65rem;
+      font-size: 0.7rem;
       text-align: center;
-      padding: 0.2rem;
+      padding: 0.25rem;
       opacity: 0;
       pointer-events: none;
       z-index: 4;
@@ -184,28 +187,33 @@
       opacity: 1;
     }
 
-    /* ----- SMALL SCREEN TWEAKS ----- */
-    @media (max-width: 480px) {
-      :root {
-        --door-size: 64px;
-      }
-
-      .door {
-        font-size: 1.1rem;
-      }
-    }
-
     footer {
       font-size: 0.75rem;
       opacity: 0.6;
       padding-bottom: 0.75rem;
+    }
+
+    @media (max-width: 600px) {
+      :root {
+        --door-size: 190px;
+      }
+
+      .door {
+        font-size: 1.4rem;
+      }
+    }
+
+    @media (max-width: 420px) {
+      :root {
+        --door-size: 160px;
+      }
     }
   </style>
 </head>
 
 <body>
   <h1>🎄 Advent Calendar 2025 🎄</h1>
-  <p class="subtitle">Click today’s bauble to reveal the picture and song.</p>
+  <p class="subtitle">Click today's bauble to reveal the picture. Click again to play the song.</p>
 
   <div class="top-bar">
     <label class="testing-toggle">
@@ -220,18 +228,15 @@
   </div>
 
   <footer>
-    Tip: upload your images into <code>images/1.png…25.png</code> and music into
-    <code>music/1.mp3…25.mp3</code> in this GitHub repo.
+    Images in <code>images/1.png…25.png</code>, music in <code>music/1.mp3…25.mp3</code>.
   </footer>
 
   <script>
-    /* CONFIG */
     const DOOR_COUNT = 25;
     const IMAGE_EXT = "png";
     const AUDIO_EXT = "mp3";
-    const IMAGE_PATH = "images"; // folder in your repo
-    const AUDIO_PATH = "music";  // folder in your repo
-    const AUDIO_DELAY_MS = 2000;
+    const IMAGE_PATH = "images";
+    const AUDIO_PATH = "music";
 
     const calendarEl = document.getElementById("calendar");
     const testingToggle = document.getElementById("testingToggle");
@@ -244,9 +249,8 @@
 
     dateInfoEl.textContent = isDecember
       ? `Today: December ${todayDate}`
-      : `Today isn’t December – doors will stay locked unless testing mode is on.`;
+      : `Today isn’t December – doors are date-locked unless testing mode is on.`;
 
-    /* Helper: paths for image + audio for a given door */
     function getImageUrl(doorNumber) {
       return `${IMAGE_PATH}/${doorNumber}.${IMAGE_EXT}`;
     }
@@ -255,115 +259,150 @@
       return `${AUDIO_PATH}/${doorNumber}.${AUDIO_EXT}`;
     }
 
-    /* Generate shuffled door numbers */
-    const doorNumbers = Array.from({ length: DOOR_COUNT }, (_, i) => i + 1)
-      .sort(() => Math.random() - 0.5);
+    // Tree-shaped layout positions (percentages of calendar box)
+    // 1 at top, then 2, 3, 4, 5, 5, 3, 2 = 25 total
+    const doorPositions = [
+      { left: 50, top: 7 },   // 1
 
-    /* Generate random positions (in %) within the calendar box */
-    function getRandomPosition() {
-      const left = 10 + Math.random() * 80; // 10–90%
-      const top = 8 + Math.random() * 84;   // 8–92%
-      return { left, top };
+      { left: 36, top: 16 },  // 2
+      { left: 64, top: 16 },  // 3
+
+      { left: 28, top: 25 },  // 4
+      { left: 50, top: 25 },  // 5
+      { left: 72, top: 25 },  // 6
+
+      { left: 22, top: 34 },  // 7
+      { left: 42, top: 34 },  // 8
+      { left: 58, top: 34 },  // 9
+      { left: 78, top: 34 },  // 10
+
+      { left: 18, top: 43 },  // 11
+      { left: 34, top: 43 },  // 12
+      { left: 50, top: 43 },  // 13
+      { left: 66, top: 43 },  // 14
+      { left: 82, top: 43 },  // 15
+
+      { left: 18, top: 52 },  // 16
+      { left: 34, top: 52 },  // 17
+      { left: 50, top: 52 },  // 18
+      { left: 66, top: 52 },  // 19
+      { left: 82, top: 52 },  // 20
+
+      { left: 30, top: 61 },  // 21
+      { left: 50, top: 61 },  // 22
+      { left: 70, top: 61 },  // 23
+
+      { left: 38, top: 71 },  // 24
+      { left: 62, top: 71 }   // 25
+    ];
+
+    let currentAudio = null;
+
+    function doorDateState(doorNumber, testing) {
+      if (testing) return "testing";
+
+      if (!isDecember) {
+        return "locked";
+      }
+
+      if (todayDate > doorNumber) return "past";   // should load already open
+      if (todayDate === doorNumber) return "today"; // closed but unlockable
+      return "future"; // locked
     }
 
-    /* Create all doors */
-    doorNumbers.forEach((num) => {
-      const doorEl = document.createElement("div");
-      doorEl.className = "door";
-      doorEl.dataset.doorNumber = String(num);
+    function updateDoorLockState(doorEl, doorNumber) {
+      const testing = testingToggle.checked;
+      const state = doorDateState(doorNumber, testing);
 
-      const { left, top } = getRandomPosition();
-      doorEl.style.left = `${left}%`;
-      doorEl.style.top = `${top}%`;
-
-      // Number on front
-      const numberEl = document.createElement("div");
-      numberEl.className = "door-number";
-      numberEl.textContent = num;
-      doorEl.appendChild(numberEl);
-
-      // Image behind the number
-      const imgEl = document.createElement("img");
-      imgEl.className = "door-image";
-      imgEl.src = getImageUrl(num);
-      imgEl.alt = `Door ${num} image`;
-      doorEl.appendChild(imgEl);
-
-      // Locked hint
-      const lockedHint = document.createElement("div");
-      lockedHint.className = "door-locked-hint";
-      lockedHint.textContent = "Opens on December " + num;
-      doorEl.appendChild(lockedHint);
-
-      // Click handler
-      doorEl.addEventListener("click", () => handleDoorClick(doorEl, num));
-
-      calendarEl.appendChild(doorEl);
-      updateDoorLockState(doorEl, num);
-    });
-
-    /* Update locked/unlocked styling based on date & testing */
-    function updateDoorLockState(doorEl, num) {
-      const isTesting = testingToggle.checked;
-
-      const isUnlockedByDate =
-        isTesting ||
-        (isDecember && todayDate >= num) ||
-        (isDecember && todayDate >= num) ||
-        (!isDecember && false); // only December counts without testing
-
-      if (isUnlockedByDate) {
+      if (state === "testing" || state === "past" || state === "today") {
         doorEl.classList.remove("locked");
       } else {
         doorEl.classList.add("locked");
       }
     }
 
-    /* When testing mode toggle changes, refresh locks */
-    testingToggle.addEventListener("change", () => {
-      document
-        .querySelectorAll(".door")
-        .forEach((doorEl) =>
-          updateDoorLockState(doorEl, Number(doorEl.dataset.doorNumber))
-        );
-    });
-
-    let currentAudio = null;
-
-    function handleDoorClick(doorEl, doorNumber) {
-      const isLocked = doorEl.classList.contains("locked");
-      const isTesting = testingToggle.checked;
-
-      if (isLocked && !isTesting) {
-        alert(
-          `Door ${doorNumber} is locked.\nYou can open it on December ${doorNumber}, or enable testing mode.`
-        );
-        return;
-      }
-
-      if (doorEl.classList.contains("open")) {
-        // Already open – do nothing (or you could replay sound if you want)
-        return;
-      }
-
-      doorEl.classList.add("open");
-
-      // Stop any existing audio
+    function playDoorAudio(doorNumber) {
       if (currentAudio) {
         currentAudio.pause();
         currentAudio = null;
       }
 
-      // Play audio after delay
-      const audioUrl = getAudioUrl(doorNumber);
-      setTimeout(() => {
-        const audio = new Audio(audioUrl);
-        currentAudio = audio;
-        audio.play().catch(() => {
-          // Ignore errors (e.g., file missing or autoplay blocked)
-        });
-      }, AUDIO_DELAY_MS);
+      const audio = new Audio(getAudioUrl(doorNumber));
+      currentAudio = audio;
+      audio.play().catch(() => {
+        // If file is missing or blocked, just fail silently.
+      });
     }
+
+    function handleDoorClick(doorEl, doorNumber) {
+      const locked = doorEl.classList.contains("locked");
+      const testing = testingToggle.checked;
+
+      if (locked && !testing) {
+        alert(
+          `Door ${doorNumber} is locked.\nIt opens on December ${doorNumber} (or enable testing mode).`
+        );
+        return;
+      }
+
+      const alreadyOpen = doorEl.classList.contains("open");
+
+      if (!alreadyOpen) {
+        doorEl.classList.add("open");
+        // Open but don't auto-play? You asked "music does not need to play unless it is clicked".
+        // We'll treat this same click as "clicked for sound" too:
+        playDoorAudio(doorNumber);
+      } else {
+        // Door is already open – clicking again just (re)plays the sound
+        playDoorAudio(doorNumber);
+      }
+    }
+
+    // Build all doors
+    for (let n = 1; n <= DOOR_COUNT; n++) {
+      const pos = doorPositions[n - 1] || { left: 50, top: 50 };
+
+      const doorEl = document.createElement("div");
+      doorEl.className = "door";
+      doorEl.dataset.doorNumber = String(n);
+      doorEl.style.left = `${pos.left}%`;
+      doorEl.style.top = `${pos.top}%`;
+      doorEl.style.transform = "translate(-50%, -50%)";
+
+      const numberEl = document.createElement("div");
+      numberEl.className = "door-number";
+      numberEl.textContent = n;
+      doorEl.appendChild(numberEl);
+
+      const imgEl = document.createElement("img");
+      imgEl.className = "door-image";
+      imgEl.src = getImageUrl(n);
+      imgEl.alt = `Door ${n} image`;
+      doorEl.appendChild(imgEl);
+
+      const lockedHint = document.createElement("div");
+      lockedHint.className = "door-locked-hint";
+      lockedHint.textContent = "Opens on December " + n;
+      doorEl.appendChild(lockedHint);
+
+      // Initial lock/open state
+      const initialState = doorDateState(n, false);
+      if (initialState === "past") {
+        doorEl.classList.add("open"); // already past → auto-open
+      }
+      updateDoorLockState(doorEl, n);
+
+      doorEl.addEventListener("click", () => handleDoorClick(doorEl, n));
+
+      calendarEl.appendChild(doorEl);
+    }
+
+    testingToggle.addEventListener("change", () => {
+      document.querySelectorAll(".door").forEach((doorEl) => {
+        const num = Number(doorEl.dataset.doorNumber);
+        updateDoorLockState(doorEl, num);
+      });
+    });
   </script>
 </body>
 </html>
