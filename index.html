@@ -15,14 +15,18 @@
     body {
       margin: 0;
       font-family: Arial, sans-serif;
-      background: radial-gradient(circle at top, #16291c 0%, #020b07 55%, #000 100%);
+
+      /* FULL-SCREEN BACKGROUND IMAGE */
+      background: url("tree.jpg") center center / cover no-repeat fixed;
+
       color: #fff;
       text-align: center;
+
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
-      overflow: hidden;
+      overflow: hidden; /* prevent scroll */
     }
 
     h1 {
@@ -36,7 +40,7 @@
       opacity: 0.9;
     }
 
-    /* Testing mode box moved to top-left corner */
+    /* Testing mode (top-left corner) */
     .testing-wrapper {
       position: absolute;
       top: 0.5rem;
@@ -46,9 +50,9 @@
 
     .testing-toggle {
       padding: 0.3rem 0.7rem;
-      background: rgba(0, 0, 0, 0.35);
+      background: rgba(0, 0, 0, 0.4);
       border-radius: 999px;
-      border: 1px solid rgba(255,255,255,0.3);
+      border: 1px solid rgba(255,255,255,0.35);
       display: flex;
       align-items: center;
       gap: 0.25rem;
@@ -65,25 +69,27 @@
       position: relative;
     }
 
-    /* Square container always visible with no scrolling */
+    /* Square area that always fits without scrolling */
     .calendar-box {
       width: min(95vw, 75vh);
       height: min(95vw, 75vh);
       position: relative;
     }
 
+    /* Frosted glass calendar background */
     .calendar {
       position: relative;
       width: 100%;
       height: 100%;
 
-      /* Show more of the image width (no cropping) */
-      background: url("tree.jpg") center center / contain no-repeat;
-      background-color: #000;
+      /* Frosted glass effect */
+      background: rgba(0, 0, 0, 0.35);
+      backdrop-filter: blur(6px);
 
       border-radius: 18px;
       overflow: hidden;
-      box-shadow: 0 12px 28px rgba(0,0,0,0.7);
+      box-shadow: 0 12px 30px rgba(0,0,0,0.7);
+
       display: grid;
       grid-template-columns: repeat(5, 1fr);
       grid-template-rows: repeat(5, 1fr);
@@ -91,26 +97,21 @@
       padding: var(--door-gap);
     }
 
-    .calendar::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(circle at center, rgba(0,0,0,0.15), rgba(0,0,0,0.6));
-      pointer-events: none;
-    }
-
     .door {
       position: relative;
       background: rgba(200, 0, 0, 0.9);
       border-radius: 12px;
       border: 2px solid gold;
+
       display: flex;
       align-items: center;
       justify-content: center;
+
       cursor: pointer;
       color: #fff;
       font-weight: 700;
       font-size: clamp(16px, 2.4vw, 22px);
+
       overflow: hidden;
       z-index: 1;
       transition: 0.18s ease;
@@ -153,18 +154,18 @@
       transform: scale(1);
     }
 
-    /* Gentle stagger offsets */
+    /* Gentle stagger for each row */
     .door.row-2 { margin-left: 4%; }
     .door.row-3 { margin-left: -4%; }
-    .door.row-4 { margin-left: 2%; }
-    .door.row-5 { margin-left: -2%; }
+    .door.row-4 { margin-left: 3%; }
+    .door.row-5 { margin-left: -3%; }
 
   </style>
 </head>
 
 <body>
 
-  <!-- Testing mode box (top-left) -->
+  <!-- Testing mode -->
   <div class="testing-wrapper">
     <label class="testing-toggle">
       <input type="checkbox" id="testingToggle" />
@@ -216,6 +217,7 @@
       audioEl.innerHTML = `<source src="${audioUrl(n)}" type="audio/mpeg">`;
       audioEl.style.display = "none";
 
+      // Auto-open past days
       if (isDecember && today > n) {
         door.classList.add("open");
       }
