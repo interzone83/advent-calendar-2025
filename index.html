@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Melville's Musical Advent Calendar 2025</title>
+  <title>Melvilles Musical Advent Calendar 2025</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <style>
@@ -26,21 +26,32 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      overflow: hidden; /* prevent scroll */
+      overflow: hidden; /* ensure no scroll */
+      position: relative;
+    }
+
+    /* SNOW CONTAINER (full screen, behind everything) */
+    #snow-container {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 1;
     }
 
     h1 {
       margin: 0.5rem 0 0.15rem;
       font-size: clamp(1.6rem, 3vw, 2.3rem);
+      z-index: 5;
     }
 
     .subtitle {
       margin: 0 0 0.5rem;
       font-size: 0.9rem;
       opacity: 0.9;
+      z-index: 5;
     }
 
-    /* Testing mode (top-left corner) */
     .testing-wrapper {
       position: absolute;
       top: 0.5rem;
@@ -67,25 +78,24 @@
       flex: 1;
       padding-bottom: 0.5rem;
       position: relative;
+      z-index: 5;
     }
 
-    /* Square area that always fits without scrolling */
+    /* Square area */
     .calendar-box {
       width: min(95vw, 75vh);
       height: min(95vw, 75vh);
       position: relative;
+      z-index: 5;
     }
 
-    /* Frosted glass calendar background */
+    /* NO BLUR — Transparent overlay */
     .calendar {
       position: relative;
       width: 100%;
       height: 100%;
 
-      /* Frosted glass effect */
-      background: rgba(0, 0, 0, 0.35);
-      backdrop-filter: blur(6px);
-
+      background: rgba(0, 0, 0, 0.25); /* soft tint only */
       border-radius: 18px;
       overflow: hidden;
       box-shadow: 0 12px 30px rgba(0,0,0,0.7);
@@ -95,6 +105,8 @@
       grid-template-rows: repeat(5, 1fr);
       gap: var(--door-gap);
       padding: var(--door-gap);
+
+      z-index: 5;
     }
 
     .door {
@@ -113,7 +125,7 @@
       font-size: clamp(16px, 2.4vw, 22px);
 
       overflow: hidden;
-      z-index: 1;
+      z-index: 5;
       transition: 0.18s ease;
       box-shadow: 0 4px 10px rgba(0,0,0,0.6);
     }
@@ -165,7 +177,10 @@
 
 <body>
 
-  <!-- Testing mode -->
+  <!-- SNOW -->
+  <div id="snow-container"></div>
+
+  <!-- TESTING MODE -->
   <div class="testing-wrapper">
     <label class="testing-toggle">
       <input type="checkbox" id="testingToggle" />
@@ -183,6 +198,51 @@
   </div>
 
   <script>
+    /* ------------ SNOW ANIMATION -------------- */
+    const snowContainer = document.getElementById("snow-container");
+
+    function createSnowflake() {
+      const snow = document.createElement("div");
+      snow.className = "snowflake";
+
+      const size = Math.random() * 5 + 2;  // 2–7px snowflakes
+      const left = Math.random() * 100;   // left position %
+      const duration = Math.random() * 5 + 5; // fall speed
+      const delay = Math.random() * 5;
+
+      snow.style.position = "absolute";
+      snow.style.top = "-10px";
+      snow.style.left = left + "vw";
+      snow.style.width = size + "px";
+      snow.style.height = size + "px";
+      snow.style.background = "white";
+      snow.style.borderRadius = "50%";
+      snow.style.opacity = Math.random() * 0.8 + 0.2;
+      snow.style.filter = "blur(1px)";
+      snow.style.pointerEvents = "none";
+      snow.style.animation = `fall ${duration}s linear ${delay}s infinite`;
+
+      snowContainer.appendChild(snow);
+
+      // remove after animation cycle to keep DOM light
+      setTimeout(() => snow.remove(), (duration + delay) * 1000);
+    }
+
+    setInterval(createSnowflake, 120);
+
+    // Snow falling animation
+    const style = document.createElement("style");
+    style.innerHTML = `
+      @keyframes fall {
+        0% { transform: translateY(-10px); }
+        100% { transform: translateY(110vh); }
+      }
+    `;
+    document.head.appendChild(style);
+
+
+    /* ------------ ADVENT LOGIC -------------- */
+
     const calendar = document.getElementById("calendar");
     const testingToggle = document.getElementById("testingToggle");
 
