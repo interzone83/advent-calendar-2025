@@ -1,154 +1,369 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Advent Calendar 2025</title>
+  <meta charset="UTF-8" />
+  <title>Advent Calendar 2025</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-<style>
+  <style>
+    /* ----- PAGE LAYOUT ----- */
+    :root {
+      --door-size: 80px;
+      --door-border: 3px;
+      --door-bg-closed: rgba(200, 0, 0, 0.9);
+      --door-bg-open: rgba(0, 90, 0, 0.9);
+      --door-border-closed: gold;
+      --door-border-open: #ffffff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
     body {
-        margin: 0;
-        font-family: Arial, sans-serif;
-        background: url('https://i.imgur.com/fZ7cF5e.jpeg') center top / cover no-repeat;
-        height: 100vh;
-        overflow-x: hidden;
-        color: white;
-        text-align: center;
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #133321 0%, #020b07 60%, #000000 100%);
+      color: #fdfdfd;
+      text-align: center;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
 
-    #calendar-container {
-        position: relative;
-        width: 100%;
-        max-width: 900px;
-        margin: 0 auto;
-        height: 100vh;
+    h1 {
+      margin: 0.5rem 0 0.25rem;
+      font-size: clamp(1.8rem, 3vw, 2.4rem);
     }
 
+    .subtitle {
+      margin-bottom: 0.75rem;
+      font-size: 0.95rem;
+      opacity: 0.9;
+    }
+
+    .top-bar {
+      width: 100%;
+      max-width: 900px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.25rem 1rem 0.75rem;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .testing-toggle {
+      font-size: 0.9rem;
+      background: rgba(0, 0, 0, 0.3);
+      padding: 0.25rem 0.6rem;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .info-pill {
+      font-size: 0.8rem;
+      opacity: 0.8;
+    }
+
+    /* ----- TREE / CALENDAR AREA ----- */
+    .calendar-wrapper {
+      width: 100%;
+      max-width: 900px;
+      padding: 0 1rem 1.5rem;
+      display: flex;
+      justify-content: center;
+    }
+
+    .calendar {
+      position: relative;
+      width: min(90vw, 600px);
+      aspect-ratio: 3 / 4; /* keeps it tall */
+      margin: 0 auto;
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
+      background:
+        radial-gradient(circle at 15% 0%, rgba(255, 255, 255, 0.18), transparent 55%),
+        radial-gradient(circle at 85% 0%, rgba(255, 255, 255, 0.15), transparent 55%),
+        url("https://images.unsplash.com/photo-1513506003901-1e6a229e2d15?auto=format&fit=crop&w=1200&q=80")
+          center top / cover no-repeat;
+      /* ↑ Replace URL above with your own tree image if you like */
+    }
+
+    /* subtle dark vignette so baubles are readable */
+    .calendar::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at center, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.55));
+      pointer-events: none;
+    }
+
+    /* ----- DOORS ----- */
     .door {
-        width: 80px;
-        height: 80px;
-        border-radius: 50%;
-        background: rgba(255, 0, 0, 0.8);
-        border: 3px solid gold;
-        font-size: 28px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        position: absolute;
-        transition: transform 0.3s;
-        color: white;
-        font-weight: bold;
-        user-select: none;
+      position: absolute;
+      width: var(--door-size);
+      height: var(--door-size);
+      border-radius: 50%;
+      border: var(--door-border) solid var(--door-border-closed);
+      background: var(--door-bg-closed);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: #fff;
+      font-weight: 700;
+      font-size: 1.4rem;
+      user-select: none;
+      z-index: 2;
+      transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        background 0.2s ease,
+        border-color 0.2s ease;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+      overflow: hidden; /* keeps image inside the circle */
     }
 
     .door:hover {
-        transform: scale(1.08);
+      transform: scale(1.04) translateY(-2px);
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.7);
     }
 
-    .opened {
-        background: rgba(0, 80, 0, 0.8) !important;
-        border-color: white !important;
+    .door.open {
+      background: var(--door-bg-open);
+      border-color: var(--door-border-open);
+      box-shadow: 0 0 16px rgba(255, 255, 255, 0.55);
     }
 
-    /* Hidden content */
-    .content {
-        display: none;
-        position: absolute;
-        top: 90px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 160px;
-        padding: 5px;
+    .door-number {
+      position: relative;
+      z-index: 3;
+      transition: opacity 0.25s ease;
     }
 
-    .content img {
-        width: 160px;
-        height: auto;
-        border-radius: 10px;
+    .door.open .door-number {
+      opacity: 0;
     }
 
-    #testing {
-        position: fixed;
-        top: 10px;
-        right: 10px;
-        font-size: 18px;
+    .door-image {
+      position: absolute;
+      inset: 4px;
+      border-radius: 50%;
+      object-fit: cover;
+      opacity: 0;
+      transform: scale(0.7);
+      transition:
+        opacity 0.25s ease,
+        transform 0.25s ease;
+      z-index: 2;
     }
-</style>
+
+    .door.open .door-image {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .door-locked-hint {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.65rem;
+      text-align: center;
+      padding: 0.2rem;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 4;
+    }
+
+    .door.locked:hover .door-locked-hint {
+      opacity: 1;
+    }
+
+    /* ----- SMALL SCREEN TWEAKS ----- */
+    @media (max-width: 480px) {
+      :root {
+        --door-size: 64px;
+      }
+
+      .door {
+        font-size: 1.1rem;
+      }
+    }
+
+    footer {
+      font-size: 0.75rem;
+      opacity: 0.6;
+      padding-bottom: 0.75rem;
+    }
+  </style>
 </head>
 
 <body>
-<h1>🎄 Advent Calendar 2025 🎄</h1>
+  <h1>🎄 Advent Calendar 2025 🎄</h1>
+  <p class="subtitle">Click today’s bauble to reveal the picture and song.</p>
 
-<label id="testing">
-    <input type="checkbox" id="testingMode"> Enable Testing Mode
-</label>
+  <div class="top-bar">
+    <label class="testing-toggle">
+      <input type="checkbox" id="testingToggle" />
+      Testing mode – ignore date lock
+    </label>
+    <div class="info-pill" id="dateInfo"></div>
+  </div>
 
-<div id="calendar-container"></div>
+  <div class="calendar-wrapper">
+    <div class="calendar" id="calendar"></div>
+  </div>
 
-<script>
-    const container = document.getElementById("calendar-container");
-    const today = new Date().getDate();
-    const testingMode = document.getElementById("testingMode");
+  <footer>
+    Tip: upload your images into <code>images/1.png…25.png</code> and music into
+    <code>music/1.mp3…25.mp3</code> in this GitHub repo.
+  </footer>
 
-    const imgBase = "https://drive.google.com/uc?export=download&id=";
-    const musicBase = "https://drive.google.com/uc?export=download&id=";
+  <script>
+    /* CONFIG */
+    const DOOR_COUNT = 25;
+    const IMAGE_EXT = "png";
+    const AUDIO_EXT = "mp3";
+    const IMAGE_PATH = "images"; // folder in your repo
+    const AUDIO_PATH = "music";  // folder in your repo
+    const AUDIO_DELAY_MS = 2000;
 
-    // These two IDs will be replaced by door number:
-    const exampleImg = "1BzNx-uXXF9b4Q2Fm497nURzu5mRXYWni";
-    const exampleMp3 = "1nox9OcFT-w4i_kvnHda1oMhgJKzpjsZ4";
+    const calendarEl = document.getElementById("calendar");
+    const testingToggle = document.getElementById("testingToggle");
+    const dateInfoEl = document.getElementById("dateInfo");
 
-    // For now every door uses your example links.
-    // Later: you will give me folder structure and I will map numbers → files automatically.
+    const now = new Date();
+    const todayDate = now.getDate();       // 1–31
+    const currentMonth = now.getMonth();   // 0 = Jan, 11 = Dec
+    const isDecember = currentMonth === 11;
 
-    // Random positions
-    function randomPos(maxWidth, maxHeight) {
-        return {
-            x: Math.random() * (maxWidth - 100) + 10,
-            y: Math.random() * (maxHeight - 200) + 50
-        };
+    dateInfoEl.textContent = isDecember
+      ? `Today: December ${todayDate}`
+      : `Today isn’t December – doors will stay locked unless testing mode is on.`;
+
+    /* Helper: paths for image + audio for a given door */
+    function getImageUrl(doorNumber) {
+      return `${IMAGE_PATH}/${doorNumber}.${IMAGE_EXT}`;
     }
 
-    const doors = [...Array(25).keys()].map(n => n + 1);
+    function getAudioUrl(doorNumber) {
+      return `${AUDIO_PATH}/${doorNumber}.${AUDIO_EXT}`;
+    }
 
-    doors.forEach(num => {
-        const div = document.createElement("div");
-        div.className = "door";
-        div.innerText = num;
+    /* Generate shuffled door numbers */
+    const doorNumbers = Array.from({ length: DOOR_COUNT }, (_, i) => i + 1)
+      .sort(() => Math.random() - 0.5);
 
-        // randomize position
-        const pos = randomPos(window.innerWidth * 0.9, window.innerHeight * 0.8);
-        div.style.left = pos.x + "px";
-        div.style.top = pos.y + "px";
+    /* Generate random positions (in %) within the calendar box */
+    function getRandomPosition() {
+      const left = 10 + Math.random() * 80; // 10–90%
+      const top = 8 + Math.random() * 84;   // 8–92%
+      return { left, top };
+    }
 
-        // content area
-        const content = document.createElement("div");
-        content.className = "content";
+    /* Create all doors */
+    doorNumbers.forEach((num) => {
+      const doorEl = document.createElement("div");
+      doorEl.className = "door";
+      doorEl.dataset.doorNumber = String(num);
 
-        const img = document.createElement("img");
-        img.src = imgBase + exampleImg;  // Replace later with your numbered images
+      const { left, top } = getRandomPosition();
+      doorEl.style.left = `${left}%`;
+      doorEl.style.top = `${top}%`;
 
-        content.appendChild(img);
-        div.appendChild(content);
+      // Number on front
+      const numberEl = document.createElement("div");
+      numberEl.className = "door-number";
+      numberEl.textContent = num;
+      doorEl.appendChild(numberEl);
 
-        // click logic
-        div.onclick = () => {
-            if (!testingMode.checked && num > today) {
-                alert("You may only open door " + num + " on December " + num + "!");
-                return;
-            }
+      // Image behind the number
+      const imgEl = document.createElement("img");
+      imgEl.className = "door-image";
+      imgEl.src = getImageUrl(num);
+      imgEl.alt = `Door ${num} image`;
+      doorEl.appendChild(imgEl);
 
-            div.classList.add("opened");
-            content.style.display = "block";
+      // Locked hint
+      const lockedHint = document.createElement("div");
+      lockedHint.className = "door-locked-hint";
+      lockedHint.textContent = "Opens on December " + num;
+      doorEl.appendChild(lockedHint);
 
-            setTimeout(() => {
-                const audio = new Audio(musicBase + exampleMp3);
-                audio.play();
-            }, 2000);
-        };
+      // Click handler
+      doorEl.addEventListener("click", () => handleDoorClick(doorEl, num));
 
-        container.appendChild(div);
+      calendarEl.appendChild(doorEl);
+      updateDoorLockState(doorEl, num);
     });
-</script>
 
+    /* Update locked/unlocked styling based on date & testing */
+    function updateDoorLockState(doorEl, num) {
+      const isTesting = testingToggle.checked;
+
+      const isUnlockedByDate =
+        isTesting ||
+        (isDecember && todayDate >= num) ||
+        (isDecember && todayDate >= num) ||
+        (!isDecember && false); // only December counts without testing
+
+      if (isUnlockedByDate) {
+        doorEl.classList.remove("locked");
+      } else {
+        doorEl.classList.add("locked");
+      }
+    }
+
+    /* When testing mode toggle changes, refresh locks */
+    testingToggle.addEventListener("change", () => {
+      document
+        .querySelectorAll(".door")
+        .forEach((doorEl) =>
+          updateDoorLockState(doorEl, Number(doorEl.dataset.doorNumber))
+        );
+    });
+
+    let currentAudio = null;
+
+    function handleDoorClick(doorEl, doorNumber) {
+      const isLocked = doorEl.classList.contains("locked");
+      const isTesting = testingToggle.checked;
+
+      if (isLocked && !isTesting) {
+        alert(
+          `Door ${doorNumber} is locked.\nYou can open it on December ${doorNumber}, or enable testing mode.`
+        );
+        return;
+      }
+
+      if (doorEl.classList.contains("open")) {
+        // Already open – do nothing (or you could replay sound if you want)
+        return;
+      }
+
+      doorEl.classList.add("open");
+
+      // Stop any existing audio
+      if (currentAudio) {
+        currentAudio.pause();
+        currentAudio = null;
+      }
+
+      // Play audio after delay
+      const audioUrl = getAudioUrl(doorNumber);
+      setTimeout(() => {
+        const audio = new Audio(audioUrl);
+        currentAudio = audio;
+        audio.play().catch(() => {
+          // Ignore errors (e.g., file missing or autoplay blocked)
+        });
+      }, AUDIO_DELAY_MS);
+    }
+  </script>
 </body>
 </html>
