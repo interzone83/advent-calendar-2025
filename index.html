@@ -7,7 +7,7 @@
 
   <style>
     :root {
-      --door-scale: 0.17; /* Each bauble is 17% of calendar width */
+      --door-size-px: 120px; /* will be overridden by JS based on screen size */
       --door-border: 3px;
       --door-bg-closed: rgba(200, 0, 0, 0.95);
       --door-bg-open: rgba(0, 90, 0, 0.95);
@@ -21,10 +21,15 @@
 
     body {
       margin: 0;
-      font-family: Arial, sans-serif;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        sans-serif;
       background: radial-gradient(circle at top, #16291c 0%, #020b07 55%, #000 100%);
       color: #fff;
       text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
     }
 
     h1 {
@@ -44,21 +49,35 @@
       margin: 0 auto;
       display: flex;
       justify-content: space-between;
-      padding: 0 1rem;
+      align-items: center;
+      padding: 0 1rem 0.75rem;
+      flex-wrap: wrap;
+      gap: 0.5rem;
     }
 
     .testing-toggle {
       padding: 0.3rem 0.8rem;
       background: rgba(0, 0, 0, 0.35);
-      border-radius: 20px;
+      border-radius: 999px;
       font-size: 0.9rem;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .testing-toggle input {
+      margin-right: 0.35rem;
+      transform: translateY(1px);
+    }
+
+    .info-pill {
+      font-size: 0.8rem;
+      opacity: 0.85;
     }
 
     .calendar-wrapper {
       width: 100%;
       display: flex;
       justify-content: center;
-      margin-bottom: 2rem;
+      padding: 0 1rem 1.5rem;
     }
 
     .calendar {
@@ -76,12 +95,13 @@
       position: absolute;
       inset: 0;
       background: radial-gradient(circle at center, rgba(0, 0, 0, 0.12), rgba(0, 0, 0, 0.6));
+      pointer-events: none;
     }
 
     .door {
       position: absolute;
-      width: calc(var(--door-scale) * 100%);
-      height: calc(var(--door-scale) * 100%);
+      width: var(--door-size-px);
+      height: var(--door-size-px);
       border-radius: 50%;
       border: var(--door-border) solid var(--door-border-closed);
       background: var(--door-bg-closed);
@@ -89,32 +109,33 @@
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      font-size: 1.2vw;
-      min-font-size: 14px;
-      max-font-size: 26px;
       color: #fff;
       font-weight: 700;
+      font-size: clamp(16px, calc(var(--door-size-px) * 0.3), 26px);
       z-index: 2;
-      transition: 0.2s ease;
+      transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        background 0.2s ease,
+        border-color 0.2s ease;
       overflow: hidden;
     }
 
-    @media (max-width: 600px) {
-      .door {
-        font-size: 18px;
-      }
+    .door:hover {
+      transform: scale(1.04) translateY(-3px);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.9);
     }
 
     .door.open {
       background: var(--door-bg-open);
       border-color: var(--door-border-open);
-      box-shadow: 0 0 16px #fff7;
+      box-shadow: 0 0 16px rgba(255, 255, 255, 0.6);
     }
 
     .door-number {
       position: relative;
       z-index: 3;
-      transition: opacity 0.2s ease;
+      transition: opacity 0.25s ease;
     }
 
     .door.open .door-number {
@@ -123,14 +144,15 @@
 
     .door-image {
       position: absolute;
-      inset: calc(var(--door-border) * 1px);
-      width: 100%;
-      height: 100%;
+      inset: 4px;
       border-radius: 50%;
+      width: calc(var(--door-size-px) - 8px);
+      height: calc(var(--door-size-px) - 8px);
       object-fit: cover;
       opacity: 0;
       transform: scale(0.7);
-      transition: 0.25s ease;
+      transition: opacity 0.25s ease, transform 0.25s ease;
+      z-index: 2;
     }
 
     .door.open .door-image {
@@ -146,130 +168,189 @@
       align-items: center;
       justify-content: center;
       font-size: 0.7rem;
-      background: rgba(0, 0, 0, 0.4);
+      background: rgba(0, 0, 0, 0.45);
       border-radius: 50%;
+      padding: 0.2rem;
+      text-align: center;
+    }
+
+    footer {
+      font-size: 0.75rem;
+      opacity: 0.6;
+      padding-bottom: 0.75rem;
     }
   </style>
 </head>
-
 <body>
   <h1>🎄 Advent Calendar 2025 🎄</h1>
-  <p class="subtitle">Click a bauble to reveal its picture. Click again to play its song.</p>
+  <p class="subtitle">Click today’s bauble to reveal its picture. Click again to play the song.</p>
 
   <div class="top-bar">
     <label class="testing-toggle">
       <input type="checkbox" id="testingToggle" />
-      Testing mode
+      Testing mode – ignore date lock
     </label>
-    <div id="dateInfo"></div>
+    <div class="info-pill" id="dateInfo"></div>
   </div>
 
   <div class="calendar-wrapper">
     <div class="calendar" id="calendar"></div>
   </div>
 
+  <footer>
+    Images: <code>images/1.png…25.png</code> · Music: <code>music/1.mp3…25.mp3</code>
+  </footer>
+
   <script>
     const DOOR_COUNT = 25;
+    const IMAGE_PATH = "images";
+    const AUDIO_PATH = "music";
+    const IMAGE_EXT = "png";
+    const AUDIO_EXT = "mp3";
 
-    // Tree-shaped bauble positions (% of width/height)
-    const positions = [
-      { left: 50, top: 6 },
-      { left: 37, top: 14 }, { left: 63, top: 14 },
-      { left: 28, top: 23 }, { left: 50, top: 22 }, { left: 72, top: 23 },
-      { left: 22, top: 32 }, { left: 40, top: 31 }, { left: 60, top: 31 }, { left: 78, top: 32 },
-      { left: 18, top: 42 }, { left: 34, top: 41 }, { left: 50, top: 41 }, { left: 66, top: 41 }, { left: 82, top: 42 },
-      { left: 20, top: 52 }, { left: 36, top: 51 }, { left: 50, top: 50 }, { left: 64, top: 51 }, { left: 80, top: 52 },
-      { left: 32, top: 63 }, { left: 50, top: 62 }, { left: 68, top: 63 },
-      { left: 42, top: 73 }, { left: 58, top: 73 }
-    ];
+    // row pattern: total 25 doors
+    const rows = [1, 2, 3, 4, 5, 5, 3, 2];
 
     const calendar = document.getElementById("calendar");
     const testingToggle = document.getElementById("testingToggle");
     const dateInfo = document.getElementById("dateInfo");
 
     const now = new Date();
-    const day = now.getDate();
+    const today = now.getDate();
     const month = now.getMonth(); // 11 = December
     const isDecember = month === 11;
 
-    dateInfo.textContent = isDecember ? `Today: December ${day}` : `Not December – doors locked`;
+    dateInfo.textContent = isDecember
+      ? `Today: December ${today}`
+      : `Today isn't December – doors are date-locked unless testing mode is on.`;
 
-    function getImage(n) {
-      return `images/${n}.png`;
+    function imgUrl(n) {
+      return `${IMAGE_PATH}/${n}.${IMAGE_EXT}`;
     }
-    function getAudio(n) {
-      return `music/${n}.mp3`;
+
+    function audioUrl(n) {
+      return `${AUDIO_PATH}/${n}.${AUDIO_EXT}`;
     }
 
     let currentAudio = null;
-
     function playAudio(n) {
-      if (currentAudio) currentAudio.pause();
-      const audio = new Audio(getAudio(n));
+      if (currentAudio) {
+        currentAudio.pause();
+      }
+      const audio = new Audio(audioUrl(n));
       currentAudio = audio;
       audio.play().catch(() => {});
     }
 
-    function isDoorUnlocked(n) {
+    function isUnlocked(n) {
       if (testingToggle.checked) return true;
       if (!isDecember) return false;
-      return day >= n;
+      return today >= n;
     }
 
-    function isPast(n) {
+    function isPastDay(n) {
       if (!isDecember) return false;
-      return day > n;
+      return today > n;
     }
 
-    for (let i = 1; i <= DOOR_COUNT; i++) {
-      const pos = positions[i - 1];
-      const door = document.createElement("div");
+    const doorsMeta = []; // {el, num, rowIndex, colIndex}
 
-      door.className = "door";
-      door.style.left = pos.left + "%";
-      door.style.top = pos.top + "%";
-      door.dataset.locktext = `Opens Dec ${i}`;
-      door.dataset.num = i;
+    // Build doors row by row
+    let doorNumber = 1;
+    rows.forEach((count, rowIndex) => {
+      for (let c = 0; c < count; c++) {
+        if (doorNumber > DOOR_COUNT) return;
 
-      const num = document.createElement("div");
-      num.className = "door-number";
-      num.textContent = i;
-      door.appendChild(num);
+        const door = document.createElement("div");
+        door.className = "door";
+        door.dataset.num = String(doorNumber);
+        door.dataset.locktext = `Opens on December ${doorNumber}`;
 
-      const img = document.createElement("img");
-      img.className = "door-image";
-      img.src = getImage(i);
-      door.appendChild(img);
+        const numEl = document.createElement("div");
+        numEl.className = "door-number";
+        numEl.textContent = doorNumber;
+        door.appendChild(numEl);
 
-      if (isPast(i)) {
-        door.classList.add("open");
-      } else if (!isDoorUnlocked(i)) {
-        door.classList.add("locked");
-      }
+        const imgEl = document.createElement("img");
+        imgEl.className = "door-image";
+        imgEl.src = imgUrl(doorNumber);
+        imgEl.alt = `Door ${doorNumber} image`;
+        door.appendChild(imgEl);
 
-      door.addEventListener("click", () => {
-        if (!isDoorUnlocked(i)) {
-          alert(`Door ${i} opens on December ${i}`);
-          return;
-        }
-
-        const open = door.classList.contains("open");
-
-        if (!open) {
+        if (isPastDay(doorNumber)) {
           door.classList.add("open");
-          playAudio(i);
-        } else {
-          playAudio(i);
+        } else if (!isUnlocked(doorNumber)) {
+          door.classList.add("locked");
         }
-      });
 
-      calendar.appendChild(door);
+        door.addEventListener("click", () => {
+          if (!isUnlocked(doorNumber)) {
+            alert(`Door ${doorNumber} opens on December ${doorNumber}.`);
+            return;
+          }
+
+          const alreadyOpen = door.classList.contains("open");
+          if (!alreadyOpen) {
+            door.classList.add("open");
+            playAudio(doorNumber);
+          } else {
+            playAudio(doorNumber);
+          }
+        });
+
+        calendar.appendChild(door);
+        doorsMeta.push({ el: door, num: doorNumber, rowIndex, colIndex: c });
+        doorNumber++;
+      }
+    });
+
+    // Layout calculation: resize-friendly
+    function layoutDoors() {
+      const rect = calendar.getBoundingClientRect();
+      const w = rect.width;
+      const h = rect.height;
+
+      const maxInRow = Math.max(...rows); // 5
+      // Base size: 80% of column width, capped at 150px
+      let doorSize = (w / maxInRow) * 0.8;
+      const MAX_SIZE = 150;
+      if (doorSize > MAX_SIZE) doorSize = MAX_SIZE;
+      if (doorSize < 60) doorSize = (w / maxInRow) * 0.85; // keep readable on tiny screens
+
+      const gapX = doorSize * 0.15; // horizontal space between baubles
+      const gapY = doorSize * 0.25; // vertical space between rows
+      const topOffset = doorSize * 0.5; // start a bit below the top
+
+      // Push size to CSS variable
+      document.documentElement.style.setProperty("--door-size-px", `${doorSize}px`);
+
+      doorsMeta.forEach(({ el, rowIndex, colIndex }) => {
+        const count = rows[rowIndex];
+        const rowWidth = count * doorSize + (count - 1) * gapX;
+        const leftStart = (w - rowWidth) / 2;
+
+        const x = leftStart + colIndex * (doorSize + gapX);
+        const y = topOffset + rowIndex * (doorSize + gapY);
+
+        const centerX = x + doorSize / 2;
+        const centerY = y + doorSize / 2;
+
+        const leftPercent = (centerX / w) * 100;
+        const topPercent = (centerY / h) * 100;
+
+        el.style.left = leftPercent + "%";
+        el.style.top = topPercent + "%";
+        el.style.transform = "translate(-50%, -50%)";
+      });
     }
 
+    layoutDoors();
+    window.addEventListener("resize", layoutDoors);
+
+    // When testing mode toggles, update locked state
     testingToggle.addEventListener("change", () => {
-      document.querySelectorAll(".door").forEach((door) => {
-        const n = Number(door.dataset.num);
-        door.classList.toggle("locked", !isDoorUnlocked(n));
+      doorsMeta.forEach(({ el, num }) => {
+        el.classList.toggle("locked", !isUnlocked(num) && !isPastDay(num));
       });
     });
   </script>
