@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Melville's Musical Advent Calendar 2025</title>
+  <title>Melvilles Musical Advent Calendar 2025</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <style>
@@ -26,37 +26,40 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      overflow: hidden; /* ensure no scroll */
+      overflow: hidden;
       position: relative;
     }
 
-    /* SNOW CONTAINER (full screen, behind everything) */
-    #snow-container {
+    /* SNOW LAYERS */
+    #snow-back, #snow-mid, #snow-front {
       position: fixed;
       inset: 0;
       pointer-events: none;
       overflow: hidden;
-      z-index: 1;
     }
+    #snow-back { z-index: 1; }
+    #snow-mid { z-index: 2; }
+    #snow-front { z-index: 3; }
 
     h1 {
       margin: 0.5rem 0 0.15rem;
       font-size: clamp(1.6rem, 3vw, 2.3rem);
-      z-index: 5;
+      z-index: 10;
     }
 
     .subtitle {
       margin: 0 0 0.5rem;
       font-size: 0.9rem;
       opacity: 0.9;
-      z-index: 5;
+      z-index: 10;
     }
 
+    /* Testing mode (top-left corner) */
     .testing-wrapper {
       position: absolute;
       top: 0.5rem;
       left: 0.5rem;
-      z-index: 999;
+      z-index: 9999;
     }
 
     .testing-toggle {
@@ -67,7 +70,7 @@
       display: flex;
       align-items: center;
       gap: 0.25rem;
-      font-size: 0.85rem;
+      font-size: 0.9rem;
     }
 
     .calendar-wrapper {
@@ -78,7 +81,7 @@
       flex: 1;
       padding-bottom: 0.5rem;
       position: relative;
-      z-index: 5;
+      z-index: 10;
     }
 
     /* Square area */
@@ -86,7 +89,7 @@
       width: min(95vw, 75vh);
       height: min(95vw, 75vh);
       position: relative;
-      z-index: 5;
+      z-index: 10;
     }
 
     /* NO BLUR — Transparent overlay */
@@ -95,7 +98,7 @@
       width: 100%;
       height: 100%;
 
-      background: rgba(0, 0, 0, 0.25); /* soft tint only */
+      background: rgba(0, 0, 0, 0.25); /* subtle */
       border-radius: 18px;
       overflow: hidden;
       box-shadow: 0 12px 30px rgba(0,0,0,0.7);
@@ -106,7 +109,7 @@
       gap: var(--door-gap);
       padding: var(--door-gap);
 
-      z-index: 5;
+      z-index: 10;
     }
 
     .door {
@@ -125,7 +128,7 @@
       font-size: clamp(16px, 2.4vw, 22px);
 
       overflow: hidden;
-      z-index: 5;
+      z-index: 10;
       transition: 0.18s ease;
       box-shadow: 0 4px 10px rgba(0,0,0,0.6);
     }
@@ -172,13 +175,42 @@
     .door.row-4 { margin-left: 3%; }
     .door.row-5 { margin-left: -3%; }
 
+    /* CHRISTMAS MESSAGE */
+    #christmas-message {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.8);
+      background: rgba(0,0,0,0.75);
+      padding: 2rem 3rem;
+      border-radius: 20px;
+      font-size: 2rem;
+      font-weight: 700;
+      color: gold;
+      text-shadow: 0 0 12px white;
+      opacity: 0;
+      transition: opacity 0.6s ease, transform 0.6s ease;
+      z-index: 20000;
+      pointer-events: none;
+    }
+
+    #christmas-message.show {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+
   </style>
 </head>
 
 <body>
 
-  <!-- SNOW -->
-  <div id="snow-container"></div>
+  <!-- SNOW LAYERS -->
+  <div id="snow-back"></div>
+  <div id="snow-mid"></div>
+  <div id="snow-front"></div>
+
+  <!-- CHRISTMAS MESSAGE -->
+  <div id="christmas-message">🎄 Merry Christmas Melville! 🎄</div>
 
   <!-- TESTING MODE -->
   <div class="testing-wrapper">
@@ -198,53 +230,64 @@
   </div>
 
   <script>
-    /* ------------ SNOW ANIMATION -------------- */
-    const snowContainer = document.getElementById("snow-container");
+    /* ============================================================
+       MORE SNOW — THREE DEPTH LAYERS
+    ============================================================ */
+    function startSnow(layerId, density, maxSize, speedMin, speedMax) {
+      const layer = document.getElementById(layerId);
 
-    function createSnowflake() {
-      const snow = document.createElement("div");
-      snow.className = "snowflake";
+      function createSnowflake() {
+        const snow = document.createElement("div");
+        const size = Math.random() * maxSize + 2;
+        const left = Math.random() * 100;
+        const duration = Math.random() * (speedMax - speedMin) + speedMin;
 
-      const size = Math.random() * 5 + 2;  // 2–7px snowflakes
-      const left = Math.random() * 100;   // left position %
-      const duration = Math.random() * 5 + 5; // fall speed
-      const delay = Math.random() * 5;
+        snow.style.position = "absolute";
+        snow.style.top = "-10px";
+        snow.style.left = left + "vw";
+        snow.style.width = size + "px";
+        snow.style.height = size + "px";
+        snow.style.background = "white";
+        snow.style.borderRadius = "50%";
+        snow.style.opacity = Math.random() * 0.9 + 0.1;
+        snow.style.filter = "blur(1px)";
+        snow.style.pointerEvents = "none";
+        snow.style.animation = `fall ${duration}s linear forwards`;
 
-      snow.style.position = "absolute";
-      snow.style.top = "-10px";
-      snow.style.left = left + "vw";
-      snow.style.width = size + "px";
-      snow.style.height = size + "px";
-      snow.style.background = "white";
-      snow.style.borderRadius = "50%";
-      snow.style.opacity = Math.random() * 0.8 + 0.2;
-      snow.style.filter = "blur(1px)";
-      snow.style.pointerEvents = "none";
-      snow.style.animation = `fall ${duration}s linear ${delay}s infinite`;
+        layer.appendChild(snow);
 
-      snowContainer.appendChild(snow);
+        setTimeout(() => snow.remove(), duration * 1000);
+      }
 
-      // remove after animation cycle to keep DOM light
-      setTimeout(() => snow.remove(), (duration + delay) * 1000);
+      setInterval(createSnowflake, density);
     }
 
-    setInterval(createSnowflake, 120);
+    // BACK: small + slow
+    startSnow("snow-back", 300, 4, 8, 14);
 
-    // Snow falling animation
+    // MID: medium
+    startSnow("snow-mid", 180, 6, 6, 12);
+
+    // FRONT: large + fast
+    startSnow("snow-front", 100, 9, 4, 10);
+
+    // Falling animation
     const style = document.createElement("style");
     style.innerHTML = `
       @keyframes fall {
-        0% { transform: translateY(-10px); }
-        100% { transform: translateY(110vh); }
+        from { transform: translateY(-10px); }
+        to { transform: translateY(110vh); }
       }
     `;
     document.head.appendChild(style);
 
 
-    /* ------------ ADVENT LOGIC -------------- */
-
+    /* ============================================================
+       ADVENT DOORS + CHRISTMAS MESSAGE
+    ============================================================ */
     const calendar = document.getElementById("calendar");
     const testingToggle = document.getElementById("testingToggle");
+    const message = document.getElementById("christmas-message");
 
     const now = new Date();
     const today = now.getDate();
@@ -277,7 +320,6 @@
       audioEl.innerHTML = `<source src="${audioUrl(n)}" type="audio/mpeg">`;
       audioEl.style.display = "none";
 
-      // Auto-open past days
       if (isDecember && today > n) {
         door.classList.add("open");
       }
@@ -296,6 +338,11 @@
 
         if (!door.classList.contains("open")) {
           door.classList.add("open");
+        }
+
+        // Door 25 — show Christmas message ON December 25
+        if (n === 25 && isDecember && today >= 25) {
+          message.classList.add("show");
         }
 
         const audio = document.getElementById("audio-" + n);
