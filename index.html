@@ -16,7 +16,6 @@
       margin: 0;
       font-family: Arial, sans-serif;
 
-      /* FULL-SCREEN BACKGROUND IMAGE */
       background: url("tree.jpg") center center / cover no-repeat fixed;
 
       color: #fff;
@@ -30,7 +29,6 @@
       position: relative;
     }
 
-    /* SNOW LAYERS (falling only) */
     #snow-back, #snow-mid, #snow-front {
       position: fixed;
       inset: 0;
@@ -54,7 +52,6 @@
       z-index: 10;
     }
 
-    /* Testing mode (top-left corner) */
     .testing-wrapper {
       position: absolute;
       top: 0.5rem;
@@ -84,20 +81,18 @@
       z-index: 10;
     }
 
-    /* Square area that fits viewport */
     .calendar-box {
       width: min(95vw, 75vh);
       height: min(95vw, 75vh);
       position: relative;
       z-index: 10;
-      perspective: 1200px; /* for door flip */
+      perspective: 1200px;
     }
 
     .calendar {
       position: relative;
       width: 100%;
       height: 100%;
-
       background: rgba(0, 0, 0, 0.25);
       border-radius: 18px;
       overflow: hidden;
@@ -178,13 +173,11 @@
       transform: scale(1);
     }
 
-    /* Gentle stagger for each row */
     .door.row-2 { margin-left: 4%; }
     .door.row-3 { margin-left: -4%; }
     .door.row-4 { margin-left: 3%; }
     .door.row-5 { margin-left: -3%; }
 
-    /* CHRISTMAS MESSAGE */
     #christmas-message {
       position: fixed;
       top: 50%;
@@ -192,17 +185,14 @@
       transform: translate(-50%, -50%) scale(0.6);
       padding: 2.5rem 3.5rem;
       border-radius: 25px;
-
       font-size: clamp(2.2rem, 5vw, 4rem);
       font-weight: 700;
-
       background: rgba(0, 0, 0, 0.65);
       color: gold;
       text-shadow:
         0 0 12px gold,
         0 0 22px white,
         0 0 35px rgba(255,255,255,0.6);
-
       opacity: 0;
       pointer-events: none;
       z-index: 20000;
@@ -216,7 +206,6 @@
       animation: pulseGlow 2.5s infinite ease-in-out;
     }
 
-    /* Sparkle burst animation */
     @keyframes sparkleBurst {
       0%   { opacity: 1; transform: scale(0.3) rotate(0deg); }
       50%  { opacity: 1; transform: scale(1.4) rotate(180deg); }
@@ -234,7 +223,6 @@
       animation: sparkleBurst 1.2s forwards ease-out;
     }
 
-    /* Glow pulse */
     @keyframes pulseGlow {
       0% {
         text-shadow:
@@ -256,7 +244,6 @@
       }
     }
 
-    /* Door flip animation */
     @keyframes doorFlip {
       0% { transform: rotateY(0deg); }
       50% { transform: rotateY(90deg); }
@@ -268,15 +255,12 @@
 
 <body>
 
-  <!-- SNOW LAYERS -->
   <div id="snow-back"></div>
   <div id="snow-mid"></div>
   <div id="snow-front"></div>
 
-  <!-- CHRISTMAS MESSAGE -->
   <div id="christmas-message">🎄 Merry Christmas Melville! 🎄</div>
 
-  <!-- TESTING MODE -->
   <div class="testing-wrapper">
     <label class="testing-toggle">
       <input type="checkbox" id="testingToggle" />
@@ -295,7 +279,7 @@
 
   <script>
     /* ============================================================
-       SNOW (falling only)
+       SNOW
     ============================================================ */
     function startSnow(layerId, density, maxSize, speedMin, speedMax) {
       const layer = document.getElementById(layerId);
@@ -325,14 +309,10 @@
       setInterval(createSnowflake, density);
     }
 
-    // BACK: small + slow
     startSnow("snow-back", 250, 4, 8, 14);
-    // MID: medium
     startSnow("snow-mid", 150, 6, 6, 12);
-    // FRONT: large + fast
     startSnow("snow-front", 90, 9, 4, 10);
 
-    // Falling animation keyframes
     const style = document.createElement("style");
     style.innerHTML = `
       @keyframes fall {
@@ -343,7 +323,18 @@
     document.head.appendChild(style);
 
     /* ============================================================
-       ADVENT DOORS + CHRISTMAS MESSAGE + SPARKLES
+       PRELOAD AUDIO FOR ALL DOORS (LG TV FIX)
+    ============================================================ */
+    function audioUrl(n) { return `music/${n}.mp3`; }
+
+    for (let i = 1; i <= 25; i++) {
+      const preloadAudio = new Audio();
+      preloadAudio.src = audioUrl(i);
+      preloadAudio.preload = "auto";
+    }
+
+    /* ============================================================
+       ADVENT DOORS + MESSAGE + AUDIO + RETRY LOGIC
     ============================================================ */
     const calendar = document.getElementById("calendar");
     const testingToggle = document.getElementById("testingToggle");
@@ -355,7 +346,6 @@
     const isDecember = month === 11;
 
     function imgUrl(n) { return `images/${n}.png`; }
-    function audioUrl(n) { return `music/${n}.mp3`; }
 
     function createDoorSparkles(centerX, centerY) {
       for (let i = 0; i < 8; i++) {
@@ -391,11 +381,7 @@
       imgEl.className = "door-image";
       imgEl.src = imgUrl(n);
 
-      const audioEl = document.createElement("audio");
-      audioEl.id = "audio-" + n;
-      audioEl.preload = "auto";
-      audioEl.innerHTML = `<source src="${audioUrl(n)}" type="audio/mpeg">`;
-      audioEl.style.display = "none";
+      const audioEl = new Audio(audioUrl(n));
 
       if (isDecember && today > n) {
         door.classList.add("open");
@@ -403,7 +389,6 @@
 
       door.appendChild(numEl);
       door.appendChild(imgEl);
-      door.appendChild(audioEl);
 
       door.addEventListener("click", () => {
         const testing = testingToggle.checked;
@@ -418,41 +403,39 @@
         const wasOpen = door.classList.contains("open");
         if (!wasOpen) {
           door.classList.add("open");
-
           const rect = door.getBoundingClientRect();
           createDoorSparkles(rect.left + rect.width/2, rect.top + rect.height/2);
         }
 
-        /* --- CHRISTMAS MESSAGE LOGIC WITH AUTO-HIDE --- */
+        /* --- CHRISTMAS MESSAGE --- */
         if (n === 25) {
           if (testing || (isDecember && today >= 25)) {
+
             message.classList.add("show");
 
-            // Remove after 10 seconds
             clearTimeout(message.hideTimer);
             message.hideTimer = setTimeout(() => {
               message.classList.remove("show");
             }, 10000);
 
-            // Hide on click anywhere
-            const hideOnClick = () => {
-              message.classList.remove("show");
-              document.removeEventListener("click", hideOnClick);
-            };
-            document.addEventListener("click", hideOnClick);
+            setTimeout(() => {
+              const hideOnClick = () => {
+                message.classList.remove("show");
+                document.removeEventListener("click", hideOnClick);
+              };
+              document.addEventListener("click", hideOnClick, { once: true });
+            }, 50);
           }
         }
 
-        const audio = document.getElementById("audio-" + n);
-        audio.currentTime = 0;
-
-        audio.play().catch(() => {
-          const retry = () => {
-            audio.play().catch(() => {});
-            document.body.removeEventListener("click", retry);
-          };
-          document.body.addEventListener("click", retry, { once: true });
+        /* --- AUDIO PLAY WITH RETRY (LG TV FIX) --- */
+        audioEl.currentTime = 0;
+        audioEl.play().catch(() => {
+          setTimeout(() => {
+            audioEl.play().catch(() => {});
+          }, 500);
         });
+
       });
 
       calendar.appendChild(door);
