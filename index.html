@@ -8,19 +8,14 @@
   <style>
     * { box-sizing: border-box; }
 
-    :root {
-      --door-gap: 4%;
-    }
+    :root { --door-gap: 4%; }
 
     body {
       margin: 0;
       font-family: Arial, sans-serif;
-
       background: url("tree.jpg") center center / cover no-repeat fixed;
-
       color: #fff;
       text-align: center;
-
       min-height: 100vh;
       display: flex;
       flex-direction: column;
@@ -29,6 +24,7 @@
       position: relative;
     }
 
+    /* SNOW LAYERS */
     #snow-back, #snow-mid, #snow-front {
       position: fixed;
       inset: 0;
@@ -70,6 +66,7 @@
       font-size: 0.9rem;
     }
 
+    /* CALENDAR LAYOUT */
     .calendar-wrapper {
       width: 100%;
       display: flex;
@@ -103,25 +100,22 @@
       grid-template-rows: repeat(5, 1fr);
       gap: var(--door-gap);
       padding: var(--door-gap);
-
       z-index: 10;
     }
 
+    /* DOORS */
     .door {
       position: relative;
       background: rgba(200, 0, 0, 0.9);
       border-radius: 12px;
       border: 2px solid gold;
-
       display: flex;
       align-items: center;
       justify-content: center;
-
       cursor: pointer;
       color: #fff;
       font-weight: 700;
       font-size: clamp(16px, 2.4vw, 22px);
-
       overflow: hidden;
       z-index: 10;
       transition: 0.18s ease;
@@ -146,7 +140,6 @@
     .door-number {
       z-index: 3;
       transition: opacity 0.22s ease;
-      backface-visibility: hidden;
     }
 
     .door.open .door-number { opacity: 0; }
@@ -162,7 +155,6 @@
       transform: scale(0.9);
       transition: opacity 0.22s ease, transform 0.22s ease;
       z-index: 2;
-      backface-visibility: hidden;
     }
 
     .door.open .door-image {
@@ -170,11 +162,13 @@
       transform: scale(1);
     }
 
+    /* Stagger */
     .door.row-2 { margin-left: 4%; }
     .door.row-3 { margin-left: -4%; }
     .door.row-4 { margin-left: 3%; }
     .door.row-5 { margin-left: -3%; }
 
+    /* CHRISTMAS MESSAGE */
     #christmas-message {
       position: fixed;
       top: 50%;
@@ -182,17 +176,11 @@
       transform: translate(-50%, -50%) scale(0.6);
       padding: 2.5rem 3.5rem;
       border-radius: 25px;
-
       font-size: clamp(2.2rem, 5vw, 4rem);
       font-weight: 700;
-
       background: rgba(0, 0, 0, 0.65);
       color: gold;
-      text-shadow:
-        0 0 12px gold,
-        0 0 22px white,
-        0 0 35px rgba(255,255,255,0.6);
-
+      text-shadow: 0 0 12px gold, 0 0 22px white;
       opacity: 0;
       pointer-events: none;
       z-index: 20000;
@@ -209,12 +197,7 @@
       animation: none;
     }
 
-    @keyframes sparkleBurst {
-      0%   { opacity: 1; transform: scale(0.3) rotate(0deg); }
-      50%  { opacity: 1; transform: scale(1.4) rotate(180deg); }
-      100% { opacity: 0; transform: scale(2.2) rotate(360deg); }
-    }
-
+    /* SPARKLES */
     .sparkle {
       position: fixed;
       width: 12px;
@@ -226,29 +209,19 @@
       animation: sparkleBurst 1.2s forwards ease-out;
     }
 
-    body.low-effects .sparkle {
-      display: none;
+    body.low-effects .sparkle { display: none; }
+
+    /* KEYFRAMES */
+    @keyframes sparkleBurst {
+      0%   { opacity: 1; transform: scale(0.3) rotate(0deg); }
+      50%  { opacity: 1; transform: scale(1.4) rotate(180deg); }
+      100% { opacity: 0; transform: scale(2.2) rotate(360deg); }
     }
 
     @keyframes pulseGlow {
-      0% {
-        text-shadow:
-          0 0 12px gold,
-          0 0 25px white,
-          0 0 45px rgba(255,255,200,0.9);
-      }
-      50% {
-        text-shadow:
-          0 0 22px gold,
-          0 0 45px white,
-          0 0 75px rgba(255,255,200,1);
-      }
-      100% {
-        text-shadow:
-          0 0 12px gold,
-          0 0 25px white,
-          0 0 45px rgba(255,255,200,0.9);
-      }
+      0%   { text-shadow: 0 0 12px gold, 0 0 25px white; }
+      50%  { text-shadow: 0 0 22px gold, 0 0 45px white; }
+      100% { text-shadow: 0 0 12px gold, 0 0 25px white; }
     }
 
     @keyframes doorFlip {
@@ -257,18 +230,51 @@
       100% { transform: rotateY(0deg); }
     }
 
+    /* FALL */
+    @keyframes fall {
+      from { transform: translateY(-10px); }
+      to { transform: translateY(110vh); }
+    }
+
     /* LOW EFFECTS MODE */
     body.low-effects #snow-mid,
     body.low-effects #snow-front {
       display: none;
     }
 
+    /* LG TV SOUND UNLOCK POPUP */
+    #sound-unlock {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0, 0, 0, 0.55);
+      padding: 22px 30px;
+      border-radius: 14px;
+      text-align: center;
+      font-size: 1.3rem;
+      color: white;
+      z-index: 999999;
+      display: none;
+      backdrop-filter: blur(4px);
+      border: 1px solid rgba(255,255,255,0.15);
+    }
+
+    #sound-unlock button {
+      margin-top: 14px;
+      padding: 10px 22px;
+      font-size: 1.1rem;
+      border-radius: 10px;
+      border: none;
+      background: rgba(255,255,255,0.2);
+      color: white;
+    }
   </style>
 </head>
 
 <body>
 
-  <!-- AUDIO PRELOAD CONTAINER -->
+  <!-- AUDIO PRELOAD -->
   <div id="preload-container" style="display:none;"></div>
 
   <!-- SNOW -->
@@ -276,7 +282,13 @@
   <div id="snow-mid"></div>
   <div id="snow-front"></div>
 
-  <!-- MESSAGE -->
+  <!-- LG TV SOUND UNLOCK -->
+  <div id="sound-unlock">
+    🔊 Tap to enable sound<br>
+    <button id="sound-ok">Enable</button>
+  </div>
+
+  <!-- CHRISTMAS MESSAGE -->
   <div id="christmas-message">🎄 Merry Christmas Melville! 🎄</div>
 
   <!-- TESTING -->
@@ -300,14 +312,16 @@
 /* DETECT WEAK DEVICES */
 let lowEffects = false;
 const ua = navigator.userAgent || "";
-if (/Web0S|webOS|LG Browser|SMART-TV|SmartTV|Tizen|NetCast|HbbTV/i.test(ua)) {
+const isLG = /Web0S|webOS|LG Browser|LG Smart/i.test(ua);
+
+if (/Web0S|webOS|LG|SMART-TV|SmartTV|Tizen|NetCast|HbbTV/i.test(ua))
   lowEffects = true;
-}
+
 if (typeof CSS !== "undefined" && CSS.supports) {
-  if (!CSS.supports("transform-style", "preserve-3d")) {
+  if (!CSS.supports("transform-style", "preserve-3d"))
     lowEffects = true;
-  }
 }
+
 if (lowEffects) document.body.classList.add("low-effects");
 
 /* SNOW */
@@ -316,12 +330,11 @@ function startSnow(layerId, density, maxSize, speedMin, speedMax) {
 
   function createSnowflake() {
     const snow = document.createElement("div");
-    const size = Math.random() * maxSize + 2;
     snow.style.position = "absolute";
     snow.style.top = "-10px";
     snow.style.left = Math.random() * 100 + "vw";
-    snow.style.width = size + "px";
-    snow.style.height = size + "px";
+    const size = Math.random() * maxSize + 2;
+    snow.style.width = snow.style.height = size + "px";
     snow.style.background = "white";
     snow.style.borderRadius = "50%";
     snow.style.opacity = Math.random() * 0.9 + 0.1;
@@ -335,14 +348,6 @@ function startSnow(layerId, density, maxSize, speedMin, speedMax) {
   setInterval(createSnowflake, density);
 }
 
-const fallKeyframes = document.createElement("style");
-fallKeyframes.innerHTML = `
-@keyframes fall {
-  from { transform: translateY(-10px); }
-  to { transform: translateY(110vh); }
-}`;
-document.head.appendChild(fallKeyframes);
-
 if (lowEffects) {
   startSnow("snow-back", 400, 3, 10, 18);
 } else {
@@ -351,7 +356,7 @@ if (lowEffects) {
   startSnow("snow-front", 90, 9, 4, 10);
 }
 
-/* AUDIO PRELOADING — LG OPTIMIZED */
+/* AUDIO PRELOADING */
 function audioUrl(n) { return `music/${n}.mp3`; }
 
 const preloadContainer = document.getElementById("preload-container");
@@ -361,12 +366,27 @@ for (let i = 1; i <= 25; i++) {
   const a = document.createElement("audio");
   a.preload = "auto";
   a.src = audioUrl(i);
-  a.load();  // forces buffering on LG webOS
+  a.load();
   preloadContainer.appendChild(a);
   preloadedAudios[i] = a;
 }
 
-/* CALENDAR LOGIC */
+/* LG TV SOUND UNLOCK POPUP */
+const soundUnlock = document.getElementById("sound-unlock");
+const soundOk = document.getElementById("sound-ok");
+
+if (isLG) {
+  soundUnlock.style.display = "block";
+}
+
+soundOk.addEventListener("click", () => {
+  const silent = preloadedAudios[1];
+  silent.volume = 0;
+  silent.play().catch(() => {});
+  soundUnlock.remove();
+});
+
+/* MAIN CALENDAR LOGIC */
 const calendar = document.getElementById("calendar");
 const testingToggle = document.getElementById("testingToggle");
 const message = document.getElementById("christmas-message");
@@ -378,22 +398,21 @@ const isDecember = month === 11;
 
 function imgUrl(n) { return `images/${n}.png`; }
 
-function createDoorSparkles(centerX, centerY) {
+function createDoorSparkles(x, y) {
   if (document.body.classList.contains("low-effects")) return;
   for (let i = 0; i < 8; i++) {
     const s = document.createElement("div");
     s.className = "sparkle";
-    s.style.left = `calc(${centerX}px + ${Math.random() * 80 - 40}px)`;
-    s.style.top = `calc(${centerY}px + ${Math.random() * 80 - 40}px)`;
+    s.style.left = `calc(${x}px + ${Math.random() * 80 - 40}px)`;
+    s.style.top = `calc(${y}px + ${Math.random() * 80 - 40}px)`;
     document.body.appendChild(s);
     setTimeout(() => s.remove(), 1200);
   }
 }
 
 for (let n = 1; n <= 25; n++) {
-  const rowIndex = Math.floor((n - 1) / 5) + 1;
   const door = document.createElement("div");
-  door.className = "door row-" + rowIndex;
+  door.className = "door row-" + (Math.floor((n - 1) / 5) + 1);
   door.dataset.num = n;
 
   const numEl = document.createElement("div");
@@ -404,9 +423,8 @@ for (let n = 1; n <= 25; n++) {
   imgEl.className = "door-image";
   imgEl.src = imgUrl(n);
 
-  if (isDecember && today > n) {
+  if (isDecember && today > n)
     door.classList.add("open");
-  }
 
   door.appendChild(numEl);
   door.appendChild(imgEl);
@@ -427,26 +445,27 @@ for (let n = 1; n <= 25; n++) {
       createDoorSparkles(rect.left + rect.width/2, rect.top + rect.height/2);
     }
 
-    if (n === 25) {
-      if (testing || (isDecember && today >= 25)) {
-        message.classList.add("show");
-        clearTimeout(message.hideTimer);
-        message.hideTimer = setTimeout(() => {
-          message.classList.remove("show");
-        }, 10000);
+    /* Door 25 Christmas message */
+    if (n === 25 && (testing || (isDecember && today >= 25))) {
+      message.classList.add("show");
 
-        setTimeout(() => {
-          const hideOnClick = () => {
-            message.classList.remove("show");
-            document.removeEventListener("click", hideOnClick);
-          };
-          document.addEventListener("click", hideOnClick, { once: true });
-        }, 50);
-      }
+      clearTimeout(message.hideTimer);
+      message.hideTimer = setTimeout(() => {
+        message.classList.remove("show");
+      }, 10000);
+
+      setTimeout(() => {
+        const hideOnClick = () => {
+          message.classList.remove("show");
+          document.removeEventListener("click", hideOnClick);
+        };
+        document.addEventListener("click", hideOnClick, { once: true });
+      }, 50);
     }
 
-    /* PLAY AUDIO — using preloaded LG-TV-safe audio */
+    /* AUDIO PLAYBACK */
     const audioEl = preloadedAudios[n];
+    audioEl.volume = 1;
     audioEl.currentTime = 0;
 
     audioEl.play().catch(() => {
