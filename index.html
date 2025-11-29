@@ -41,6 +41,30 @@
     #snow-mid { z-index: 2; }
     #snow-front { z-index: 3; }
 
+    /* SNOW PILE AT BOTTOM */
+    #snow-ground {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 0;
+      background: radial-gradient(circle at 50% -20%, #ffffff, #e7f7ff 60%, #d0e5f0 100%);
+      pointer-events: none;
+      z-index: 4;
+      transition: height 1s ease-out;
+    }
+
+    /* SANTA */
+    #santa {
+      position: fixed;
+      top: 15vh;
+      left: -20vw;
+      font-size: clamp(2.5rem, 5vw, 4rem);
+      z-index: 5;
+      pointer-events: none;
+      opacity: 0;
+    }
+
     h1 {
       margin: 0.5rem 0 0.15rem;
       font-size: clamp(1.6rem, 3vw, 2.3rem);
@@ -84,21 +108,21 @@
       z-index: 10;
     }
 
-    /* Square area */
+    /* Square area that fits viewport */
     .calendar-box {
       width: min(95vw, 75vh);
       height: min(95vw, 75vh);
       position: relative;
       z-index: 10;
+      perspective: 1200px; /* for door flip */
     }
 
-    /* NO BLUR — Transparent overlay */
     .calendar {
       position: relative;
       width: 100%;
       height: 100%;
 
-      background: rgba(0, 0, 0, 0.25); /* subtle */
+      background: rgba(0, 0, 0, 0.25); /* subtle tint */
       border-radius: 18px;
       overflow: hidden;
       box-shadow: 0 12px 30px rgba(0,0,0,0.7);
@@ -129,8 +153,14 @@
 
       overflow: hidden;
       z-index: 10;
-      transition: 0.18s ease;
+      transition:
+        transform 0.18s ease,
+        box-shadow 0.18s ease,
+        background 0.18s ease,
+        border-color 0.18s ease;
+
       box-shadow: 0 4px 10px rgba(0,0,0,0.6);
+      transform-style: preserve-3d;
     }
 
     .door:hover {
@@ -142,11 +172,13 @@
       background: rgba(0, 90, 0, 0.95);
       border-color: #fff;
       box-shadow: 0 0 16px rgba(255,255,255,0.6);
+      animation: doorFlip 0.5s ease-out;
     }
 
     .door-number {
       z-index: 3;
       transition: opacity 0.22s ease;
+      backface-visibility: hidden;
     }
 
     .door.open .door-number { opacity: 0; }
@@ -162,6 +194,7 @@
       transform: scale(0.9);
       transition: opacity 0.22s ease, transform 0.22s ease;
       z-index: 2;
+      backface-visibility: hidden;
     }
 
     .door.open .door-image {
@@ -180,23 +213,86 @@
       position: fixed;
       top: 50%;
       left: 50%;
-      transform: translate(-50%, -50%) scale(0.8);
-      background: rgba(0,0,0,0.75);
-      padding: 2rem 3rem;
-      border-radius: 20px;
-      font-size: 2rem;
+      transform: translate(-50%, -50%) scale(0.6);
+      padding: 2.5rem 3.5rem;
+      border-radius: 25px;
+
+      font-size: clamp(2.2rem, 5vw, 4rem);
       font-weight: 700;
+
+      background: rgba(0, 0, 0, 0.65);
       color: gold;
-      text-shadow: 0 0 12px white;
+      text-shadow:
+        0 0 12px gold,
+        0 0 22px white,
+        0 0 35px rgba(255,255,255,0.6);
+
       opacity: 0;
-      transition: opacity 0.6s ease, transform 0.6s ease;
-      z-index: 20000;
       pointer-events: none;
+      z-index: 20000;
+      transition: opacity 0.5s ease, transform 0.6s ease;
+      animation: none;
     }
 
     #christmas-message.show {
       opacity: 1;
       transform: translate(-50%, -50%) scale(1);
+      animation: pulseGlow 2.5s infinite ease-in-out;
+    }
+
+    /* Sparkle burst animation */
+    @keyframes sparkleBurst {
+      0%   { opacity: 1; transform: scale(0.3) rotate(0deg); }
+      50%  { opacity: 1; transform: scale(1.4) rotate(180deg); }
+      100% { opacity: 0; transform: scale(2.2) rotate(360deg); }
+    }
+
+    .sparkle {
+      position: fixed;
+      width: 12px;
+      height: 12px;
+      background: radial-gradient(circle, white, gold);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 20001;
+      animation: sparkleBurst 1.2s forwards ease-out;
+    }
+
+    /* Glow pulse for the message */
+    @keyframes pulseGlow {
+      0% {
+        text-shadow:
+          0 0 12px gold,
+          0 0 25px white,
+          0 0 45px rgba(255,255,200,0.9);
+      }
+      50% {
+        text-shadow:
+          0 0 22px gold,
+          0 0 45px white,
+          0 0 75px rgba(255,255,200,1);
+      }
+      100% {
+        text-shadow:
+          0 0 12px gold,
+          0 0 25px white,
+          0 0 45px rgba(255,255,200,0.9);
+      }
+    }
+
+    /* Door flip animation */
+    @keyframes doorFlip {
+      0% { transform: rotateY(0deg); }
+      50% { transform: rotateY(90deg); }
+      100% { transform: rotateY(0deg); }
+    }
+
+    /* Santa flying animation (we'll trigger via JS by adding a class) */
+    @keyframes santaFly {
+      0%   { transform: translateX(-20vw); opacity: 0; }
+      10%  { opacity: 1; }
+      90%  { opacity: 1; }
+      100% { transform: translateX(120vw); opacity: 0; }
     }
 
   </style>
@@ -208,6 +304,12 @@
   <div id="snow-back"></div>
   <div id="snow-mid"></div>
   <div id="snow-front"></div>
+
+  <!-- SNOW PILE GROUND -->
+  <div id="snow-ground"></div>
+
+  <!-- SANTA -->
+  <div id="santa">🎅🛷</div>
 
   <!-- CHRISTMAS MESSAGE -->
   <div id="christmas-message">🎄 Merry Christmas Melville! 🎄</div>
@@ -231,7 +333,7 @@
 
   <script>
     /* ============================================================
-       MORE SNOW — THREE DEPTH LAYERS
+       SNOW & SNOW PILE
     ============================================================ */
     function startSnow(layerId, density, maxSize, speedMin, speedMax) {
       const layer = document.getElementById(layerId);
@@ -255,7 +357,6 @@
         snow.style.animation = `fall ${duration}s linear forwards`;
 
         layer.appendChild(snow);
-
         setTimeout(() => snow.remove(), duration * 1000);
       }
 
@@ -263,15 +364,25 @@
     }
 
     // BACK: small + slow
-    startSnow("snow-back", 300, 4, 8, 14);
-
+    startSnow("snow-back", 250, 4, 8, 14);
     // MID: medium
-    startSnow("snow-mid", 180, 6, 6, 12);
-
+    startSnow("snow-mid", 150, 6, 6, 12);
     // FRONT: large + fast
-    startSnow("snow-front", 100, 9, 4, 10);
+    startSnow("snow-front", 90, 9, 4, 10);
 
-    // Falling animation
+    // Snow pile: light build-up up to ~10vh
+    const snowGround = document.getElementById("snow-ground");
+    let snowLevel = 0;
+    const maxSnowLevel = 10; // vh (light, as requested)
+
+    setInterval(() => {
+      if (snowLevel < maxSnowLevel) {
+        snowLevel += 0.3; // slow build-up
+        snowGround.style.height = snowLevel + "vh";
+      }
+    }, 3000); // every 3s
+
+    // Falling animation keyframes
     const style = document.createElement("style");
     style.innerHTML = `
       @keyframes fall {
@@ -281,9 +392,29 @@
     `;
     document.head.appendChild(style);
 
+    /* ============================================================
+       SANTA FLYING (cartoon style)
+    ============================================================ */
+    const santaEl = document.getElementById("santa");
+
+    function launchSanta() {
+      // random height between 10vh and 30vh
+      const top = 10 + Math.random() * 20;
+      santaEl.style.top = top + "vh";
+      santaEl.style.animation = "none";
+      santaEl.offsetHeight; // trigger reflow
+      santaEl.style.animation = "santaFly 12s linear";
+
+      // schedule next flight
+      const nextIn = 15000 + Math.random() * 20000; // 15–35 seconds
+      setTimeout(launchSanta, nextIn);
+    }
+
+    // Start Santa after a short delay
+    setTimeout(launchSanta, 5000);
 
     /* ============================================================
-       ADVENT DOORS + CHRISTMAS MESSAGE
+       ADVENT DOORS + CHRISTMAS MESSAGE + SPARKLES
     ============================================================ */
     const calendar = document.getElementById("calendar");
     const testingToggle = document.getElementById("testingToggle");
@@ -298,6 +429,22 @@
     function audioUrl(n) { return `music/${n}.mp3`; }
 
     const DOOR_COUNT = 25;
+
+    function createDoorSparkles(centerX, centerY) {
+      for (let i = 0; i < 8; i++) {
+        const s = document.createElement("div");
+        s.className = "sparkle";
+
+        const offsetX = (Math.random() * 80 - 40); // -40% to +40% around door
+        const offsetY = (Math.random() * 80 - 40);
+
+        s.style.left = `calc(${centerX}px + ${offsetX}px)`;
+        s.style.top = `calc(${centerY}px + ${offsetY}px)`;
+
+        document.body.appendChild(s);
+        setTimeout(() => s.remove(), 1200);
+      }
+    }
 
     for (let n = 1; n <= DOOR_COUNT; n++) {
       const rowIndex = Math.floor((n - 1) / 5) + 1;
@@ -320,6 +467,7 @@
       audioEl.innerHTML = `<source src="${audioUrl(n)}" type="audio/mpeg">`;
       audioEl.style.display = "none";
 
+      // Auto-open past days
       if (isDecember && today > n) {
         door.classList.add("open");
       }
@@ -329,24 +477,43 @@
       door.appendChild(audioEl);
 
       door.addEventListener("click", () => {
-        if (!testingToggle.checked) {
+        const testing = testingToggle.checked;
+
+        if (!testing) {
           if (!isDecember || today < n) {
             alert(`Door ${n} opens on December ${n}.`);
             return;
           }
         }
 
-        if (!door.classList.contains("open")) {
+        const wasOpen = door.classList.contains("open");
+
+        if (!wasOpen) {
           door.classList.add("open");
+
+          // Sparkles around door position
+          const rect = door.getBoundingClientRect();
+          const centerX = rect.left + rect.width / 2;
+          const centerY = rect.top + rect.height / 2;
+          createDoorSparkles(centerX, centerY);
         }
 
-        // Door 25 — show Christmas message ON December 25
+        // Door 25 — show Christmas message on Dec 25 or any time in testing mode
         if (n === 25) {
-  if (testingToggle.checked || (isDecember && today >= 25)) {
-    message.classList.add("show");
-  }
-}
+          if (testing || (isDecember && today >= 25)) {
+            message.classList.add("show");
 
+            // Extra sparkles around message
+            for (let i = 0; i < 14; i++) {
+              const s = document.createElement("div");
+              s.className = "sparkle";
+              s.style.left = (50 + (Math.random() * 40 - 20)) + "%";
+              s.style.top = (50 + (Math.random() * 40 - 20)) + "%";
+              document.body.appendChild(s);
+              setTimeout(() => s.remove(), 1200);
+            }
+          }
+        }
 
         const audio = document.getElementById("audio-" + n);
         audio.currentTime = 0;
