@@ -341,9 +341,12 @@
         }
 
         // Door 25 — show Christmas message ON December 25
-        if (n === 25 && isDecember && today >= 25) {
-          message.classList.add("show");
-        }
+        if (n === 25) {
+  if (testingToggle.checked || (isDecember && today >= 25)) {
+    message.classList.add("show");
+  }
+}
+
 
         const audio = document.getElementById("audio-" + n);
         audio.currentTime = 0;
