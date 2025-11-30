@@ -219,35 +219,6 @@
       from { transform: translateY(-10px); }
       to { transform: translateY(110vh); }
     }
-
-    /* LG BIG PLAY UNLOCK */
-    #sound-unlock {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: rgba(0, 0, 0, 0.65);
-      padding: 30px 40px;
-      border-radius: 16px;
-      text-align: center;
-      font-size: 1.6rem;
-      color: white;
-      z-index: 999999;
-      display: none;
-      backdrop-filter: blur(4px);
-      border: 1px solid rgba(255,255,255,0.15);
-    }
-
-    #unlock-button {
-      margin-top: 20px;
-      padding: 14px 28px;
-      font-size: 1.7rem;
-      border-radius: 12px;
-      border: none;
-      background: rgba(255,255,255,0.25);
-      color: white;
-      cursor: pointer;
-    }
   </style>
 </head>
 
@@ -258,15 +229,6 @@
   <div id="snow-back"></div>
   <div id="snow-mid"></div>
   <div id="snow-front"></div>
-
-  <!-- BIG PLAY UNLOCK -->
-  <div id="sound-unlock">
-    🔊 Tap Play to enable sound<br>
-    <button id="unlock-button">▶ Play</button>
-    <audio id="unlock-audio" style="width:1px;height:1px;opacity:0;">
-      <source src="data:audio/mp3;base64,//uQxAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAACcQCAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" type="audio/mp3">
-    </audio>
-  </div>
 
   <div id="christmas-message">🎄 Merry Christmas Melville! 🎄</div>
 
@@ -287,40 +249,15 @@
   </div>
 
 <script>
-/* DETECT LG NETCAST */
+/* LOW EFFECTS CHECK */
 const ua = navigator.userAgent || "";
-const isLG = /Web0S|webOS|NetCast|SmartTV|SmartTV\/10|Colt|LG/i.test(ua);
-
-let lowEffects = false;
-if (/Web0S|webOS|NetCast|SMART-TV|SmartTV|Tizen|HbbTV/i.test(ua))
-  lowEffects = true;
+let lowEffects = /Web0S|webOS|NetCast|SMART-TV|SmartTV|Tizen|HbbTV/i.test(ua);
 
 if (typeof CSS !== "undefined" && CSS.supports) {
   if (!CSS.supports("transform-style", "preserve-3d"))
     lowEffects = true;
 }
-
 if (lowEffects) document.body.classList.add("low-effects");
-
-/* SHOW POPUP ON LG */
-const soundUnlock = document.getElementById("sound-unlock");
-const unlockBtn = document.getElementById("unlock-button");
-const unlockAudio = document.getElementById("unlock-audio");
-
-if (isLG) soundUnlock.style.display = "block";
-
-/* BIG PLAY BUTTON TRIGGERS AUDIO UNLOCK */
-unlockBtn.addEventListener("click", () => {
-  unlockAudio.volume = 1;
-  unlockAudio.currentTime = 0;
-  unlockAudio.play().then(() => {
-    soundUnlock.remove();
-  }).catch(() => {
-    setTimeout(() => {
-      unlockAudio.play().then(() => soundUnlock.remove());
-    }, 400);
-  });
-});
 
 /* SNOW */
 function startSnow(layerId, density, maxSize, speedMin, speedMax) {
@@ -395,7 +332,6 @@ function createDoorSparkles(x, y) {
 for (let n = 1; n <= 25; n++) {
   const door = document.createElement("div");
   door.className = "door row-" + (Math.floor((n - 1) / 5) + 1);
-  door.dataset.num = n;
 
   const numEl = document.createElement("div");
   numEl.className = "door-number";
@@ -413,20 +349,19 @@ for (let n = 1; n <= 25; n++) {
   door.addEventListener("click", () => {
     const testing = testingToggle.checked;
 
-    if (!testing) {
-      if (!isDecember || today < n) {
-        alert(`Door ${n} opens on December ${n}.`);
-        return;
-      }
+    if (!testing && (!isDecember || today < n)) {
+      alert(`Door ${n} opens on December ${n}.`);
+      return;
     }
 
     if (!door.classList.contains("open")) {
       door.classList.add("open");
+
       const rect = door.getBoundingClientRect();
       createDoorSparkles(rect.left + rect.width/2, rect.top + rect.height/2);
     }
 
-    if (n === 25 && (testing || (isDecember && today >= 25))) {
+    if (n === 25 && (testing || today >= 25)) {
       message.classList.add("show");
       clearTimeout(message.hideTimer);
       message.hideTimer = setTimeout(() => {
