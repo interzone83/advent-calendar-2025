@@ -186,8 +186,6 @@
       animation: pulseGlow 2.5s infinite ease-in-out;
     }
 
-    body.low-effects #christmas-message.show { animation: none; }
-
     .sparkle {
       position: fixed;
       width: 12px;
@@ -198,8 +196,6 @@
       z-index: 20001;
       animation: sparkleBurst 1.2s forwards ease-out;
     }
-
-    body.low-effects .sparkle { display: none; }
 
     @keyframes sparkleBurst {
       0%   { opacity: 1; transform: scale(0.3) rotate(0deg); }
@@ -224,17 +220,17 @@
       to { transform: translateY(110vh); }
     }
 
-    /* SOUND UNLOCK POPUP - VISIBLE AUDIO BAR */
+    /* LG BIG PLAY UNLOCK */
     #sound-unlock {
       position: fixed;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      background: rgba(0, 0, 0, 0.55);
-      padding: 22px 30px;
-      border-radius: 14px;
+      background: rgba(0, 0, 0, 0.65);
+      padding: 30px 40px;
+      border-radius: 16px;
       text-align: center;
-      font-size: 1.3rem;
+      font-size: 1.6rem;
       color: white;
       z-index: 999999;
       display: none;
@@ -242,11 +238,16 @@
       border: 1px solid rgba(255,255,255,0.15);
     }
 
-    #sound-unlock audio {
-      width: 200px;
-      margin-top: 14px;
+    #unlock-button {
+      margin-top: 20px;
+      padding: 14px 28px;
+      font-size: 1.7rem;
+      border-radius: 12px;
+      border: none;
+      background: rgba(255,255,255,0.25);
+      color: white;
+      cursor: pointer;
     }
-
   </style>
 </head>
 
@@ -258,10 +259,11 @@
   <div id="snow-mid"></div>
   <div id="snow-front"></div>
 
+  <!-- BIG PLAY UNLOCK -->
   <div id="sound-unlock">
-    🔊 Tap Play to enable sound:<br>
-    <audio id="unlock-audio" controls>
-      <!-- 1-second silent MP3 -->
+    🔊 Tap Play to enable sound<br>
+    <button id="unlock-button">▶ Play</button>
+    <audio id="unlock-audio" style="width:1px;height:1px;opacity:0;">
       <source src="data:audio/mp3;base64,//uQxAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAACcQCAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" type="audio/mp3">
     </audio>
   </div>
@@ -285,13 +287,11 @@
   </div>
 
 <script>
-/* DEVICE DETECTION */
-let lowEffects = false;
+/* DETECT LG NETCAST */
 const ua = navigator.userAgent || "";
-
-/* Detect YOUR LG NetCast TV */
 const isLG = /Web0S|webOS|NetCast|SmartTV|SmartTV\/10|Colt|LG/i.test(ua);
 
+let lowEffects = false;
 if (/Web0S|webOS|NetCast|SMART-TV|SmartTV|Tizen|HbbTV/i.test(ua))
   lowEffects = true;
 
@@ -302,17 +302,24 @@ if (typeof CSS !== "undefined" && CSS.supports) {
 
 if (lowEffects) document.body.classList.add("low-effects");
 
-/* SHOW UNLOCK POPUP ON LG ONLY */
+/* SHOW POPUP ON LG */
 const soundUnlock = document.getElementById("sound-unlock");
+const unlockBtn = document.getElementById("unlock-button");
 const unlockAudio = document.getElementById("unlock-audio");
 
-if (isLG) {
-  soundUnlock.style.display = "block";
-}
+if (isLG) soundUnlock.style.display = "block";
 
-/* ONCE USER PRESSES PLAY, HIDE POPUP AND UNLOCK AUDIO */
-unlockAudio.addEventListener("play", () => {
-  soundUnlock.remove();
+/* BIG PLAY BUTTON TRIGGERS AUDIO UNLOCK */
+unlockBtn.addEventListener("click", () => {
+  unlockAudio.volume = 1;
+  unlockAudio.currentTime = 0;
+  unlockAudio.play().then(() => {
+    soundUnlock.remove();
+  }).catch(() => {
+    setTimeout(() => {
+      unlockAudio.play().then(() => soundUnlock.remove());
+    }, 400);
+  });
 });
 
 /* SNOW */
@@ -346,7 +353,7 @@ if (lowEffects) {
   startSnow("snow-front", 90, 9, 4, 10);
 }
 
-/* AUDIO PRELOADING */
+/* AUDIO PRELOAD */
 function audioUrl(n) { return `music/${n}.mp3`; }
 
 const preloadContainer = document.getElementById("preload-container");
@@ -385,7 +392,6 @@ function createDoorSparkles(x, y) {
   }
 }
 
-/* BUILD DOORS */
 for (let n = 1; n <= 25; n++) {
   const door = document.createElement("div");
   door.className = "door row-" + (Math.floor((n - 1) / 5) + 1);
@@ -420,7 +426,6 @@ for (let n = 1; n <= 25; n++) {
       createDoorSparkles(rect.left + rect.width/2, rect.top + rect.height/2);
     }
 
-    /* Christmas message */
     if (n === 25 && (testing || (isDecember && today >= 25))) {
       message.classList.add("show");
       clearTimeout(message.hideTimer);
@@ -437,7 +442,6 @@ for (let n = 1; n <= 25; n++) {
       }, 50);
     }
 
-    /* AUDIO PLAYBACK */
     const audioEl = preloadedAudios[n];
     audioEl.volume = 1;
     audioEl.currentTime = 0;
