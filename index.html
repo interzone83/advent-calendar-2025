@@ -224,10 +224,7 @@
       to { transform: translateY(110vh); }
     }
 
-    body.low-effects #snow-mid,
-    body.low-effects #snow-front { display: none; }
-
-    /* SOUND UNLOCK POPUP */
+    /* SOUND UNLOCK POPUP - VISIBLE AUDIO BAR */
     #sound-unlock {
       position: fixed;
       top: 50%;
@@ -245,15 +242,11 @@
       border: 1px solid rgba(255,255,255,0.15);
     }
 
-    #sound-unlock button {
+    #sound-unlock audio {
+      width: 200px;
       margin-top: 14px;
-      padding: 10px 22px;
-      font-size: 1.1rem;
-      border-radius: 10px;
-      border: none;
-      background: rgba(255,255,255,0.2);
-      color: white;
     }
+
   </style>
 </head>
 
@@ -266,8 +259,11 @@
   <div id="snow-front"></div>
 
   <div id="sound-unlock">
-    🔊 Tap to enable sound<br>
-    <button id="sound-ok">Enable</button>
+    🔊 Tap Play to enable sound:<br>
+    <audio id="unlock-audio" controls>
+      <!-- 1-second silent MP3 -->
+      <source src="data:audio/mp3;base64,//uQxAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAACcQCAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" type="audio/mp3">
+    </audio>
   </div>
 
   <div id="christmas-message">🎄 Merry Christmas Melville! 🎄</div>
@@ -293,11 +289,10 @@
 let lowEffects = false;
 const ua = navigator.userAgent || "";
 
-/* Expanded LG/SmartTV detection including your UA */
-const isLG =
-  /Web0S|webOS|NetCast|SmartTV|SmartTV\/10|Colt|LG/i.test(ua);
+/* Detect YOUR LG NetCast TV */
+const isLG = /Web0S|webOS|NetCast|SmartTV|SmartTV\/10|Colt|LG/i.test(ua);
 
-if (/Web0S|webOS|NetCast|SMART-TV|SmartTV|Tizen|NetCast|HbbTV/i.test(ua))
+if (/Web0S|webOS|NetCast|SMART-TV|SmartTV|Tizen|HbbTV/i.test(ua))
   lowEffects = true;
 
 if (typeof CSS !== "undefined" && CSS.supports) {
@@ -306,6 +301,19 @@ if (typeof CSS !== "undefined" && CSS.supports) {
 }
 
 if (lowEffects) document.body.classList.add("low-effects");
+
+/* SHOW UNLOCK POPUP ON LG ONLY */
+const soundUnlock = document.getElementById("sound-unlock");
+const unlockAudio = document.getElementById("unlock-audio");
+
+if (isLG) {
+  soundUnlock.style.display = "block";
+}
+
+/* ONCE USER PRESSES PLAY, HIDE POPUP AND UNLOCK AUDIO */
+unlockAudio.addEventListener("play", () => {
+  soundUnlock.remove();
+});
 
 /* SNOW */
 function startSnow(layerId, density, maxSize, speedMin, speedMax) {
@@ -338,7 +346,7 @@ if (lowEffects) {
   startSnow("snow-front", 90, 9, 4, 10);
 }
 
-/* AUDIO PRELOAD */
+/* AUDIO PRELOADING */
 function audioUrl(n) { return `music/${n}.mp3`; }
 
 const preloadContainer = document.getElementById("preload-container");
@@ -352,19 +360,6 @@ for (let i = 1; i <= 25; i++) {
   preloadContainer.appendChild(a);
   preloadedAudios[i] = a;
 }
-
-/* LG SOUND UNLOCK */
-const soundUnlock = document.getElementById("sound-unlock");
-const soundOk = document.getElementById("sound-ok");
-
-if (isLG) soundUnlock.style.display = "block";
-
-soundOk.addEventListener("click", () => {
-  const silent = preloadedAudios[1];
-  silent.volume = 0;
-  silent.play().catch(() => {});
-  soundUnlock.remove();
-});
 
 /* MAIN LOGIC */
 const calendar = document.getElementById("calendar");
@@ -390,7 +385,7 @@ function createDoorSparkles(x, y) {
   }
 }
 
-/* BUILD 25 DOORS */
+/* BUILD DOORS */
 for (let n = 1; n <= 25; n++) {
   const door = document.createElement("div");
   door.className = "door row-" + (Math.floor((n - 1) / 5) + 1);
@@ -425,7 +420,7 @@ for (let n = 1; n <= 25; n++) {
       createDoorSparkles(rect.left + rect.width/2, rect.top + rect.height/2);
     }
 
-    /* Christmas message on 25 */
+    /* Christmas message */
     if (n === 25 && (testing || (isDecember && today >= 25))) {
       message.classList.add("show");
       clearTimeout(message.hideTimer);
@@ -442,7 +437,7 @@ for (let n = 1; n <= 25; n++) {
       }, 50);
     }
 
-    /* AUDIO */
+    /* AUDIO PLAYBACK */
     const audioEl = preloadedAudios[n];
     audioEl.volume = 1;
     audioEl.currentTime = 0;
