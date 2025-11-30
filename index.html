@@ -219,6 +219,35 @@
       from { transform: translateY(-10px); }
       to { transform: translateY(110vh); }
     }
+
+    /* -----------------------------
+       IMAGE POPUP / ZOOM MODAL
+    ------------------------------ */
+    #img-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.8);
+      backdrop-filter: blur(4px);
+      justify-content: center;
+      align-items: center;
+      z-index: 30000;
+      cursor: pointer;
+    }
+    #img-modal.open {
+      display: flex;
+    }
+    #img-modal-content {
+      max-width: 90vw;
+      max-height: 90vh;
+      border-radius: 16px;
+      box-shadow: 0 0 25px rgba(255,255,255,0.6);
+      animation: zoomIn 0.3s ease;
+    }
+    @keyframes zoomIn {
+      from { transform: scale(0.7); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
   </style>
 </head>
 
@@ -231,6 +260,11 @@
   <div id="snow-front"></div>
 
   <div id="christmas-message">🎄 Merry Christmas Melville! 🎄</div>
+
+  <!-- POPUP IMAGE MODAL -->
+  <div id="img-modal">
+    <img id="img-modal-content" />
+  </div>
 
   <div class="testing-wrapper">
     <label class="testing-toggle">
@@ -317,6 +351,7 @@ const isDecember = month === 11;
 
 function imgUrl(n) { return `images/${n}.png`; }
 
+/* Sparkles Helper */
 function createDoorSparkles(x, y) {
   if (document.body.classList.contains("low-effects")) return;
   for (let i = 0; i < 8; i++) {
@@ -329,6 +364,7 @@ function createDoorSparkles(x, y) {
   }
 }
 
+/* Doors */
 for (let n = 1; n <= 25; n++) {
   const door = document.createElement("div");
   door.className = "door row-" + (Math.floor((n - 1) / 5) + 1);
@@ -361,6 +397,7 @@ for (let n = 1; n <= 25; n++) {
       createDoorSparkles(rect.left + rect.width/2, rect.top + rect.height/2);
     }
 
+    /* Christmas Day Message */
     if (n === 25 && (testing || today >= 25)) {
       message.classList.add("show");
       clearTimeout(message.hideTimer);
@@ -377,6 +414,7 @@ for (let n = 1; n <= 25; n++) {
       }, 50);
     }
 
+    /* Play Audio */
     const audioEl = preloadedAudios[n];
     audioEl.volume = 1;
     audioEl.currentTime = 0;
@@ -386,10 +424,21 @@ for (let n = 1; n <= 25; n++) {
         audioEl.play().catch(() => {});
       }, 500);
     });
+
+    /* SHOW POPUP IMAGE */
+    const modal = document.getElementById("img-modal");
+    const modalImg = document.getElementById("img-modal-content");
+    modalImg.src = imgUrl(n);
+    modal.classList.add("open");
   });
 
   calendar.appendChild(door);
 }
+
+/* CLOSE POPUP ON CLICK ANYWHERE */
+document.getElementById("img-modal").addEventListener("click", () => {
+  document.getElementById("img-modal").classList.remove("open");
+});
 </script>
 
 </body>
