@@ -414,16 +414,30 @@ for (let n = 1; n <= 25; n++) {
       }, 50);
     }
 
-    /* Play Audio */
-    const audioEl = preloadedAudios[n];
-    audioEl.volume = 1;
-    audioEl.currentTime = 0;
+    /* --- SMART AUDIO LOGIC WITH 30 SECOND NO-RESTART --- */
+if (!window.lastPlayTime) window.lastPlayTime = {};
+const nowTime = Date.now();
+const audioEl = preloadedAudios[n];
+const last = window.lastPlayTime[n] || 0;
+const secondsSinceLast = (nowTime - last) / 1000;
 
-    audioEl.play().catch(() => {
-      setTimeout(() => {
-        audioEl.play().catch(() => {});
-      }, 500);
-    });
+// If audio is already playing AND was started < 30s ago → don't restart it
+if (!audioEl.paused && secondsSinceLast < 30) {
+  console.log(`Door ${n}: audio playing, not restarting.`);
+} else {
+  // Start / restart audio
+  audioEl.volume = 1;
+  audioEl.currentTime = 0;
+  audioEl.play().catch(() => {
+    setTimeout(() => {
+      audioEl.play().catch(() => {});
+    }, 500);
+  });
+
+  // Record the new start time
+  window.lastPlayTime[n] = nowTime;
+}
+
 
     /* SHOW POPUP IMAGE */
     const modal = document.getElementById("img-modal");
