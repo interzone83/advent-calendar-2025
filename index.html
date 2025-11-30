@@ -24,7 +24,6 @@
       position: relative;
     }
 
-    /* SNOW LAYERS */
     #snow-back, #snow-mid, #snow-front {
       position: fixed;
       inset: 0;
@@ -131,7 +130,13 @@
       animation: doorFlip 0.5s ease-out;
     }
 
-    .door-number { z-index: 3; transition: opacity 0.22s ease; }
+    body.low-effects .door.open { animation: none; }
+
+    .door-number {
+      z-index: 3;
+      transition: opacity 0.22s ease;
+    }
+
     .door.open .door-number { opacity: 0; }
 
     .door-image {
@@ -146,18 +151,17 @@
       transition: opacity 0.22s ease, transform 0.22s ease;
       z-index: 2;
     }
+
     .door.open .door-image {
       opacity: 1;
       transform: scale(1);
     }
 
-    /* Row staggering */
     .door.row-2 { margin-left: 4%; }
     .door.row-3 { margin-left: -4%; }
     .door.row-4 { margin-left: 3%; }
     .door.row-5 { margin-left: -3%; }
 
-    /* Christmas message */
     #christmas-message {
       position: fixed;
       top: 50%;
@@ -167,7 +171,7 @@
       border-radius: 25px;
       font-size: clamp(2.2rem, 5vw, 4rem);
       font-weight: 700;
-      background: rgba(0,0,0,0.65);
+      background: rgba(0, 0, 0, 0.65);
       color: gold;
       text-shadow: 0 0 12px gold, 0 0 22px white;
       opacity: 0;
@@ -182,7 +186,6 @@
       animation: pulseGlow 2.5s infinite ease-in-out;
     }
 
-    /* Sparkles */
     .sparkle {
       position: fixed;
       width: 12px;
@@ -217,47 +220,53 @@
       to { transform: translateY(110vh); }
     }
 
-    /* Oversized native LG audio control unlock */
+    /* LG BIG PLAY UNLOCK */
     #sound-unlock {
       position: fixed;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      background: rgba(0, 0, 0, 0.70);
-      padding: 40px 50px;
-      border-radius: 20px;
+      background: rgba(0, 0, 0, 0.65);
+      padding: 30px 40px;
+      border-radius: 16px;
       text-align: center;
-      font-size: 1.8rem;
+      font-size: 1.6rem;
       color: white;
       z-index: 999999;
       display: none;
-      backdrop-filter: blur(6px);
-      border: 1px solid rgba(255,255,255,0.25);
+      backdrop-filter: blur(4px);
+      border: 1px solid rgba(255,255,255,0.15);
     }
 
-    #unlock-audio {
-      margin-top: 25px;
-      width: 100%;
-      transform: scale(1.8);   /* LARGE CLICKABLE PLAYER */
-      transform-origin: center;
+    #unlock-button {
+      margin-top: 20px;
+      padding: 14px 28px;
+      font-size: 1.7rem;
+      border-radius: 12px;
+      border: none;
+      background: rgba(255,255,255,0.25);
+      color: white;
+      cursor: pointer;
     }
-
   </style>
 </head>
 
 <body>
 
-  <!-- Silent audio element for unlocking -->
-  <div id="sound-unlock">
-    🔊 Tap Play below to enable sound<br>
-    <audio id="unlock-audio" controls>
-      <source src="data:audio/mp3;base64,//uQxAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAACcQCAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" type="audio/mp3">
-    </audio>
-  </div>
+  <div id="preload-container" style="display:none;"></div>
 
   <div id="snow-back"></div>
   <div id="snow-mid"></div>
   <div id="snow-front"></div>
+
+  <!-- BIG PLAY UNLOCK -->
+  <div id="sound-unlock">
+    🔊 Tap Play to enable sound<br>
+    <button id="unlock-button">▶ Play</button>
+    <audio id="unlock-audio" style="width:1px;height:1px;opacity:0;">
+      <source src="data:audio/mp3;base64,//uQxAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAACcQCAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" type="audio/mp3">
+    </audio>
+  </div>
 
   <div id="christmas-message">🎄 Merry Christmas Melville! 🎄</div>
 
@@ -278,7 +287,7 @@
   </div>
 
 <script>
-/* DEVICE DETECTION */
+/* DETECT LG NETCAST */
 const ua = navigator.userAgent || "";
 const isLG = /Web0S|webOS|NetCast|SmartTV|SmartTV\/10|Colt|LG/i.test(ua);
 
@@ -293,39 +302,47 @@ if (typeof CSS !== "undefined" && CSS.supports) {
 
 if (lowEffects) document.body.classList.add("low-effects");
 
-/* SHOW OVERSIZED AUDIO PLAYER IF LG */
+/* SHOW POPUP ON LG */
 const soundUnlock = document.getElementById("sound-unlock");
+const unlockBtn = document.getElementById("unlock-button");
 const unlockAudio = document.getElementById("unlock-audio");
 
-if (isLG) {
-  soundUnlock.style.display = "block";
+if (isLG) soundUnlock.style.display = "block";
 
-  /* When user plays it, hide and unlock audio permanently */
-  unlockAudio.addEventListener("play", () => {
+/* BIG PLAY BUTTON TRIGGERS AUDIO UNLOCK */
+unlockBtn.addEventListener("click", () => {
+  unlockAudio.volume = 1;
+  unlockAudio.currentTime = 0;
+  unlockAudio.play().then(() => {
     soundUnlock.remove();
+  }).catch(() => {
+    setTimeout(() => {
+      unlockAudio.play().then(() => soundUnlock.remove());
+    }, 400);
   });
-}
+});
 
-/* SNOW GEN */
-function startSnow(id, density, maxSize, speedMin, speedMax) {
-  const layer = document.getElementById(id);
-  setInterval(() => {
-    const flk = document.createElement("div");
-    flk.style.position = "absolute";
-    flk.style.top = "-10px";
-    flk.style.left = Math.random() * 100 + "vw";
+/* SNOW */
+function startSnow(layerId, density, maxSize, speedMin, speedMax) {
+  const layer = document.getElementById(layerId);
+  function createSnowflake() {
+    const snow = document.createElement("div");
+    snow.style.position = "absolute";
+    snow.style.top = "-10px";
+    snow.style.left = Math.random() * 100 + "vw";
     const size = Math.random() * maxSize + 2;
-    flk.style.width = flk.style.height = size + "px";
-    flk.style.background = "white";
-    flk.style.borderRadius = "50%";
-    flk.style.opacity = Math.random() * 0.9 + 0.1;
-    flk.style.filter = "blur(1px)";
-    flk.style.pointerEvents = "none";
+    snow.style.width = snow.style.height = size + "px";
+    snow.style.background = "white";
+    snow.style.borderRadius = "50%";
+    snow.style.opacity = Math.random() * 0.9 + 0.1;
+    snow.style.filter = "blur(1px)";
+    snow.style.pointerEvents = "none";
     const duration = Math.random() * (speedMax - speedMin) + speedMin;
-    flk.style.animation = `fall ${duration}s linear forwards`;
-    layer.appendChild(flk);
-    setTimeout(() => flk.remove(), duration * 1000);
-  }, density);
+    snow.style.animation = `fall ${duration}s linear forwards`;
+    layer.appendChild(snow);
+    setTimeout(() => snow.remove(), duration * 1000);
+  }
+  setInterval(createSnowflake, density);
 }
 
 if (lowEffects) {
@@ -336,7 +353,7 @@ if (lowEffects) {
   startSnow("snow-front", 90, 9, 4, 10);
 }
 
-/* PRELOAD AUDIO */
+/* AUDIO PRELOAD */
 function audioUrl(n) { return `music/${n}.mp3`; }
 
 const preloadContainer = document.getElementById("preload-container");
@@ -351,7 +368,7 @@ for (let i = 1; i <= 25; i++) {
   preloadedAudios[i] = a;
 }
 
-/* MAIN */
+/* MAIN LOGIC */
 const calendar = document.getElementById("calendar");
 const testingToggle = document.getElementById("testingToggle");
 const message = document.getElementById("christmas-message");
@@ -375,10 +392,10 @@ function createDoorSparkles(x, y) {
   }
 }
 
-/* DOORS */
 for (let n = 1; n <= 25; n++) {
   const door = document.createElement("div");
   door.className = "door row-" + (Math.floor((n - 1) / 5) + 1);
+  door.dataset.num = n;
 
   const numEl = document.createElement("div");
   numEl.className = "door-number";
@@ -396,35 +413,44 @@ for (let n = 1; n <= 25; n++) {
   door.addEventListener("click", () => {
     const testing = testingToggle.checked;
 
-    if (!testing && (!isDecember || today < n)) {
-      alert(`Door ${n} opens on December ${n}.`);
-      return;
+    if (!testing) {
+      if (!isDecember || today < n) {
+        alert(`Door ${n} opens on December ${n}.`);
+        return;
+      }
     }
 
     if (!door.classList.contains("open")) {
       door.classList.add("open");
-
       const rect = door.getBoundingClientRect();
       createDoorSparkles(rect.left + rect.width/2, rect.top + rect.height/2);
     }
 
-    if (n === 25 && (testing || today >= 25)) {
+    if (n === 25 && (testing || (isDecember && today >= 25))) {
       message.classList.add("show");
       clearTimeout(message.hideTimer);
       message.hideTimer = setTimeout(() => {
         message.classList.remove("show");
       }, 10000);
+
+      setTimeout(() => {
+        const hideOnClick = () => {
+          message.classList.remove("show");
+          document.removeEventListener("click", hideOnClick);
+        };
+        document.addEventListener("click", hideOnClick, { once: true });
+      }, 50);
     }
 
     const audioEl = preloadedAudios[n];
     audioEl.volume = 1;
     audioEl.currentTime = 0;
+
     audioEl.play().catch(() => {
       setTimeout(() => {
         audioEl.play().catch(() => {});
       }, 500);
     });
-
   });
 
   calendar.appendChild(door);
