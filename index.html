@@ -238,19 +238,40 @@
       display: flex;
     }
     #img-modal-content {
-  width: 70vw;
-  height: 70vh;
-  object-fit: contain;
-  max-width: none;
-  max-height: none;
-  border-radius: 16px;
-  box-shadow: 0 0 25px rgba(255,255,255,0.6);
-  animation: zoomIn 0.3s ease;
-}
-
+      width: 95vw;
+      height: 95vh;
+      object-fit: contain;
+      max-width: none;
+      max-height: none;
+      border-radius: 16px;
+      box-shadow: 0 0 25px rgba(255,255,255,0.6);
+      animation: zoomIn 0.3s ease;
+    }
     @keyframes zoomIn {
       from { transform: scale(0.7); opacity: 0; }
       to { transform: scale(1); opacity: 1; }
+    }
+
+    /* NOW PLAYING BAR */
+    #now-playing {
+      position: fixed;
+      bottom: 2%;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 0.6rem 1.2rem;
+      background: rgba(0,0,0,0.65);
+      border-radius: 12px;
+      color: gold;
+      font-size: clamp(1rem, 2vw, 1.4rem);
+      font-weight: 600;
+      text-shadow: 0 0 6px black;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+      z-index: 25000;
+    }
+    #now-playing.show {
+      opacity: 1;
     }
   </style>
 </head>
@@ -265,10 +286,13 @@
 
   <div id="christmas-message">🎄 Merry Christmas Melville! 🎄</div>
 
-  <!-- POPUP IMAGE MODAL -->
+  <!-- IMAGE POPUP -->
   <div id="img-modal">
     <img id="img-modal-content" />
   </div>
+
+  <!-- NOW PLAYING -->
+  <div id="now-playing"></div>
 
   <div class="testing-wrapper">
     <label class="testing-toggle">
@@ -296,6 +320,35 @@ if (typeof CSS !== "undefined" && CSS.supports) {
     lowEffects = true;
 }
 if (lowEffects) document.body.classList.add("low-effects");
+
+/* ADD YOUR SONG TITLES HERE */
+const songInfo = {
+  1: "Song Title 1 – Artist",
+  2: "Song Title 2 – Artist",
+  3: "Song Title 3 – Artist",
+  4: "Song Title 4 – Artist",
+  5: "Song Title 5 – Artist",
+  6: "Song Title 6 – Artist",
+  7: "Song Title 7 – Artist",
+  8: "Song Title 8 – Artist",
+  9: "Song Title 9 – Artist",
+  10: "Song Title 10 – Artist",
+  11: "Song Title 11 – Artist",
+  12: "Song Title 12 – Artist",
+  13: "Song Title 13 – Artist",
+  14: "Song Title 14 – Artist",
+  15: "Song Title 15 – Artist",
+  16: "Song Title 16 – Artist",
+  17: "Song Title 17 – Artist",
+  18: "Song Title 18 – Artist",
+  19: "Song Title 19 – Artist",
+  20: "Song Title 20 – Artist",
+  21: "Song Title 21 – Artist",
+  22: "Song Title 22 – Artist",
+  23: "Song Title 23 – Artist",
+  24: "Song Title 24 – Artist",
+  25: "Song Title 25 – Artist"
+};
 
 /* SNOW */
 function startSnow(layerId, density, maxSize, speedMin, speedMax) {
@@ -347,6 +400,7 @@ for (let i = 1; i <= 25; i++) {
 const calendar = document.getElementById("calendar");
 const testingToggle = document.getElementById("testingToggle");
 const message = document.getElementById("christmas-message");
+const nowPlayingBar = document.getElementById("now-playing");
 
 const now = new Date();
 const today = now.getDate();
@@ -367,6 +421,9 @@ function createDoorSparkles(x, y) {
     setTimeout(() => s.remove(), 1200);
   }
 }
+
+/* 30-second audio restart timer */
+if (!window.lastPlayTime) window.lastPlayTime = {};
 
 /* Doors */
 for (let n = 1; n <= 25; n++) {
@@ -419,29 +476,32 @@ for (let n = 1; n <= 25; n++) {
     }
 
     /* --- SMART AUDIO LOGIC WITH 30 SECOND NO-RESTART --- */
-if (!window.lastPlayTime) window.lastPlayTime = {};
-const nowTime = Date.now();
-const audioEl = preloadedAudios[n];
-const last = window.lastPlayTime[n] || 0;
-const secondsSinceLast = (nowTime - last) / 1000;
+    const audioEl = preloadedAudios[n];
+    const nowTime = Date.now();
+    const last = window.lastPlayTime[n] || 0;
+    const secondsSinceLast = (nowTime - last) / 1000;
 
-// If audio is already playing AND was started < 30s ago → don't restart it
-if (!audioEl.paused && secondsSinceLast < 30) {
-  console.log(`Door ${n}: audio playing, not restarting.`);
-} else {
-  // Start / restart audio
-  audioEl.volume = 1;
-  audioEl.currentTime = 0;
-  audioEl.play().catch(() => {
-    setTimeout(() => {
-      audioEl.play().catch(() => {});
-    }, 500);
-  });
+    if (!audioEl.paused && secondsSinceLast < 30) {
+      console.log(`Door ${n}: audio playing, not restarting.`);
+    } else {
+      audioEl.volume = 1;
+      audioEl.currentTime = 0;
+      audioEl.play().catch(() => {
+        setTimeout(() => {
+          audioEl.play().catch(() => {});
+        }, 500);
+      });
+      window.lastPlayTime[n] = nowTime;
+    }
 
-  // Record the new start time
-  window.lastPlayTime[n] = nowTime;
-}
+    /* SHOW NOW PLAYING BAR */
+    nowPlayingBar.textContent = "🎵 Now Playing: " + (songInfo[n] || `Door ${n}`);
+    nowPlayingBar.classList.add("show");
 
+    clearTimeout(nowPlayingBar.hideTimer);
+    nowPlayingBar.hideTimer = setTimeout(() => {
+      nowPlayingBar.classList.remove("show");
+    }, 20000);
 
     /* SHOW POPUP IMAGE */
     const modal = document.getElementById("img-modal");
