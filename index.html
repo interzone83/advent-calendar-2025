@@ -24,7 +24,6 @@
       position: relative;
     }
 
-    /* SNOW LAYERS */
     #snow-back, #snow-mid, #snow-front {
       position: fixed;
       inset: 0;
@@ -66,7 +65,6 @@
       font-size: 0.9rem;
     }
 
-    /* CALENDAR LAYOUT */
     .calendar-wrapper {
       width: 100%;
       display: flex;
@@ -103,7 +101,6 @@
       z-index: 10;
     }
 
-    /* DOORS */
     .door {
       position: relative;
       background: rgba(200, 0, 0, 0.9);
@@ -133,9 +130,7 @@
       animation: doorFlip 0.5s ease-out;
     }
 
-    body.low-effects .door.open {
-      animation: none;
-    }
+    body.low-effects .door.open { animation: none; }
 
     .door-number {
       z-index: 3;
@@ -162,13 +157,11 @@
       transform: scale(1);
     }
 
-    /* Stagger */
     .door.row-2 { margin-left: 4%; }
     .door.row-3 { margin-left: -4%; }
     .door.row-4 { margin-left: 3%; }
     .door.row-5 { margin-left: -3%; }
 
-    /* CHRISTMAS MESSAGE */
     #christmas-message {
       position: fixed;
       top: 50%;
@@ -193,11 +186,8 @@
       animation: pulseGlow 2.5s infinite ease-in-out;
     }
 
-    body.low-effects #christmas-message.show {
-      animation: none;
-    }
+    body.low-effects #christmas-message.show { animation: none; }
 
-    /* SPARKLES */
     .sparkle {
       position: fixed;
       width: 12px;
@@ -211,7 +201,6 @@
 
     body.low-effects .sparkle { display: none; }
 
-    /* KEYFRAMES */
     @keyframes sparkleBurst {
       0%   { opacity: 1; transform: scale(0.3) rotate(0deg); }
       50%  { opacity: 1; transform: scale(1.4) rotate(180deg); }
@@ -219,8 +208,8 @@
     }
 
     @keyframes pulseGlow {
-      0%   { text-shadow: 0 0 12px gold, 0 0 25px white; }
-      50%  { text-shadow: 0 0 22px gold, 0 0 45px white; }
+      0% { text-shadow: 0 0 12px gold, 0 0 25px white; }
+      50% { text-shadow: 0 0 22px gold, 0 0 45px white; }
       100% { text-shadow: 0 0 12px gold, 0 0 25px white; }
     }
 
@@ -230,19 +219,15 @@
       100% { transform: rotateY(0deg); }
     }
 
-    /* FALL */
     @keyframes fall {
       from { transform: translateY(-10px); }
       to { transform: translateY(110vh); }
     }
 
-    /* LOW EFFECTS MODE */
     body.low-effects #snow-mid,
-    body.low-effects #snow-front {
-      display: none;
-    }
+    body.low-effects #snow-front { display: none; }
 
-    /* LG TV SOUND UNLOCK POPUP */
+    /* SOUND UNLOCK POPUP */
     #sound-unlock {
       position: fixed;
       top: 50%;
@@ -274,24 +259,19 @@
 
 <body>
 
-  <!-- AUDIO PRELOAD -->
   <div id="preload-container" style="display:none;"></div>
 
-  <!-- SNOW -->
   <div id="snow-back"></div>
   <div id="snow-mid"></div>
   <div id="snow-front"></div>
 
-  <!-- LG TV SOUND UNLOCK -->
   <div id="sound-unlock">
     🔊 Tap to enable sound<br>
     <button id="sound-ok">Enable</button>
   </div>
 
-  <!-- CHRISTMAS MESSAGE -->
   <div id="christmas-message">🎄 Merry Christmas Melville! 🎄</div>
 
-  <!-- TESTING -->
   <div class="testing-wrapper">
     <label class="testing-toggle">
       <input type="checkbox" id="testingToggle" />
@@ -309,12 +289,15 @@
   </div>
 
 <script>
-/* DETECT WEAK DEVICES */
+/* DEVICE DETECTION */
 let lowEffects = false;
 const ua = navigator.userAgent || "";
-const isLG = /Web0S|webOS|LG Browser|LG Smart/i.test(ua);
 
-if (/Web0S|webOS|LG|SMART-TV|SmartTV|Tizen|NetCast|HbbTV/i.test(ua))
+/* Expanded LG/SmartTV detection including your UA */
+const isLG =
+  /Web0S|webOS|NetCast|SmartTV|SmartTV\/10|Colt|LG/i.test(ua);
+
+if (/Web0S|webOS|NetCast|SMART-TV|SmartTV|Tizen|NetCast|HbbTV/i.test(ua))
   lowEffects = true;
 
 if (typeof CSS !== "undefined" && CSS.supports) {
@@ -327,7 +310,6 @@ if (lowEffects) document.body.classList.add("low-effects");
 /* SNOW */
 function startSnow(layerId, density, maxSize, speedMin, speedMax) {
   const layer = document.getElementById(layerId);
-
   function createSnowflake() {
     const snow = document.createElement("div");
     snow.style.position = "absolute";
@@ -356,7 +338,7 @@ if (lowEffects) {
   startSnow("snow-front", 90, 9, 4, 10);
 }
 
-/* AUDIO PRELOADING */
+/* AUDIO PRELOAD */
 function audioUrl(n) { return `music/${n}.mp3`; }
 
 const preloadContainer = document.getElementById("preload-container");
@@ -371,13 +353,11 @@ for (let i = 1; i <= 25; i++) {
   preloadedAudios[i] = a;
 }
 
-/* LG TV SOUND UNLOCK POPUP */
+/* LG SOUND UNLOCK */
 const soundUnlock = document.getElementById("sound-unlock");
 const soundOk = document.getElementById("sound-ok");
 
-if (isLG) {
-  soundUnlock.style.display = "block";
-}
+if (isLG) soundUnlock.style.display = "block";
 
 soundOk.addEventListener("click", () => {
   const silent = preloadedAudios[1];
@@ -386,7 +366,7 @@ soundOk.addEventListener("click", () => {
   soundUnlock.remove();
 });
 
-/* MAIN CALENDAR LOGIC */
+/* MAIN LOGIC */
 const calendar = document.getElementById("calendar");
 const testingToggle = document.getElementById("testingToggle");
 const message = document.getElementById("christmas-message");
@@ -403,13 +383,14 @@ function createDoorSparkles(x, y) {
   for (let i = 0; i < 8; i++) {
     const s = document.createElement("div");
     s.className = "sparkle";
-    s.style.left = `calc(${x}px + ${Math.random() * 80 - 40}px)`;
-    s.style.top = `calc(${y}px + ${Math.random() * 80 - 40}px)`;
+    s.style.left = `calc(${x}px + ${Math.random()*80 - 40}px)`;
+    s.style.top = `calc(${y}px + ${Math.random()*80 - 40}px)`;
     document.body.appendChild(s);
     setTimeout(() => s.remove(), 1200);
   }
 }
 
+/* BUILD 25 DOORS */
 for (let n = 1; n <= 25; n++) {
   const door = document.createElement("div");
   door.className = "door row-" + (Math.floor((n - 1) / 5) + 1);
@@ -423,8 +404,7 @@ for (let n = 1; n <= 25; n++) {
   imgEl.className = "door-image";
   imgEl.src = imgUrl(n);
 
-  if (isDecember && today > n)
-    door.classList.add("open");
+  if (isDecember && today > n) door.classList.add("open");
 
   door.appendChild(numEl);
   door.appendChild(imgEl);
@@ -445,10 +425,9 @@ for (let n = 1; n <= 25; n++) {
       createDoorSparkles(rect.left + rect.width/2, rect.top + rect.height/2);
     }
 
-    /* Door 25 Christmas message */
+    /* Christmas message on 25 */
     if (n === 25 && (testing || (isDecember && today >= 25))) {
       message.classList.add("show");
-
       clearTimeout(message.hideTimer);
       message.hideTimer = setTimeout(() => {
         message.classList.remove("show");
@@ -463,7 +442,7 @@ for (let n = 1; n <= 25; n++) {
       }, 50);
     }
 
-    /* AUDIO PLAYBACK */
+    /* AUDIO */
     const audioEl = preloadedAudios[n];
     audioEl.volume = 1;
     audioEl.currentTime = 0;
