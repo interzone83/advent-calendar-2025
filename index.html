@@ -321,32 +321,32 @@ if (typeof CSS !== "undefined" && CSS.supports) {
 }
 if (lowEffects) document.body.classList.add("low-effects");
 
-/* ADD YOUR SONG TITLES HERE */
+/* SONG TITLES */
 const songInfo = {
-  1: "Let's Dance – David Bowie",
-  2: "Petit garçon - Graeme Allwright",
-  3: "Merry Christmas Everyone - Shakin Stevens",
-  4: "Alana - Wes",
-  5: "Résiste - France Galle ",
-  6: "Flocon, papillon - Anne Sylvestre",
-  7: "Jingle Bells - Frank Sinatra",
-  8: "Soda Pop - K-pop Demon Hunters ",
-  9: "Jazz Fart - Mr Jazz",
-  10: "I'm a Pirate - Pinkfong Bebefinn ",
-  11: "Twinkle Twinkle Little Star",
-  12: "Nothing from nothing - Billy Preston",
-  13: "I Won't Let You Down - Ok Go ",
-  14: "The Grand Old Duke of York - Tim Hart",
-  15: "Petit papa Noël",
-  16: "Defying Gravity - Wicked",
-  17: "Wheels On The Bus (Dance Version)",
-  18: "Sir Duke - Stevie Wonder",
-  19: "House of Bamboo - Andy Williams",
-  20: "Ce Qu'on Te Donne Des Huntrix - K-pop Demon Hunter",
-  21: "You Can't Always Get What You Want - Rolling Stones",
-  22: "No Woman No Cry - Bob Marley",
-  23: "APT - Rose & Bruno Mars",
-  24: "Reel 2 Reel - I Like To Move It",
+  1: "Song Title 1 – Artist",
+  2: "Song Title 2 – Artist",
+  3: "Song Title 3 – Artist",
+  4: "Song Title 4 – Artist",
+  5: "Song Title 5 – Artist",
+  6: "Song Title 6 – Artist",
+  7: "Song Title 7 – Artist",
+  8: "Song Title 8 – Artist",
+  9: "Song Title 9 – Artist",
+  10: "Song Title 10 – Artist",
+  11: "Song Title 11 – Artist",
+  12: "Song Title 12 – Artist",
+  13: "Song Title 13 – Artist",
+  14: "Song Title 14 – Artist",
+  15: "Song Title 15 – Artist",
+  16: "Song Title 16 – Artist",
+  17: "Song Title 17 – Artist",
+  18: "Song Title 18 – Artist",
+  19: "Song Title 19 – Artist",
+  20: "Song Title 20 – Artist",
+  21: "Song Title 21 – Artist",
+  22: "Song Title 22 – Artist",
+  23: "Song Title 23 – Artist",
+  24: "Song Title 24 – Artist",
   25: "Song Title 25 – Artist"
 };
 
@@ -396,6 +396,14 @@ for (let i = 1; i <= 25; i++) {
   preloadedAudios[i] = a;
 }
 
+/* --- LOAD PERSISTENT DOOR STATE --- */
+const yearKey = "openedDoors_2025";
+let openedDoors = JSON.parse(localStorage.getItem(yearKey) || "{}");
+
+function saveOpenedDoors() {
+  localStorage.setItem(yearKey, JSON.stringify(openedDoors));
+}
+
 /* MAIN LOGIC */
 const calendar = document.getElementById("calendar");
 const testingToggle = document.getElementById("testingToggle");
@@ -406,8 +414,6 @@ const now = new Date();
 const today = now.getDate();
 const month = now.getMonth();
 const isDecember = month === 11;
-
-function imgUrl(n) { return `images/${n}.png`; }
 
 /* Sparkles Helper */
 function createDoorSparkles(x, y) {
@@ -422,10 +428,9 @@ function createDoorSparkles(x, y) {
   }
 }
 
-/* 30-second audio restart timer */
 if (!window.lastPlayTime) window.lastPlayTime = {};
 
-/* Doors */
+/* CREATE DOORS */
 for (let n = 1; n <= 25; n++) {
   const door = document.createElement("div");
   door.className = "door row-" + (Math.floor((n - 1) / 5) + 1);
@@ -436,23 +441,32 @@ for (let n = 1; n <= 25; n++) {
 
   const imgEl = document.createElement("img");
   imgEl.className = "door-image";
-  imgEl.src = imgUrl(n);
+  imgEl.src = `images/${n}.png`;
 
-  if (isDecember && today > n) door.classList.add("open");
+  /* Restore previously opened doors */
+  if (openedDoors[n]) {
+    door.classList.add("open");
+  }
 
   door.appendChild(numEl);
   door.appendChild(imgEl);
 
   door.addEventListener("click", () => {
     const testing = testingToggle.checked;
+    const allowClick =
+      testing ||
+      (isDecember && n <= today);  // Option B rule: can open any door up to today
 
-    if (!testing && (!isDecember || today < n)) {
+    if (!allowClick) {
       alert(`Door ${n} opens on December ${n}.`);
       return;
     }
 
+    /* If newly opened */
     if (!door.classList.contains("open")) {
       door.classList.add("open");
+      openedDoors[n] = true;
+      saveOpenedDoors();
 
       const rect = door.getBoundingClientRect();
       createDoorSparkles(rect.left + rect.width/2, rect.top + rect.height/2);
@@ -475,7 +489,7 @@ for (let n = 1; n <= 25; n++) {
       }, 50);
     }
 
-    /* --- SMART AUDIO LOGIC WITH 30 SECOND NO-RESTART --- */
+    /* 30-SECOND NO-RESTART AUDIO LOGIC */
     const audioEl = preloadedAudios[n];
     const nowTime = Date.now();
     const last = window.lastPlayTime[n] || 0;
@@ -506,14 +520,14 @@ for (let n = 1; n <= 25; n++) {
     /* SHOW POPUP IMAGE */
     const modal = document.getElementById("img-modal");
     const modalImg = document.getElementById("img-modal-content");
-    modalImg.src = imgUrl(n);
+    modalImg.src = `images/${n}.png`;
     modal.classList.add("open");
   });
 
   calendar.appendChild(door);
 }
 
-/* CLOSE POPUP ON CLICK ANYWHERE */
+/* CLOSE POPUP */
 document.getElementById("img-modal").addEventListener("click", () => {
   document.getElementById("img-modal").classList.remove("open");
 });
