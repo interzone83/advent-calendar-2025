@@ -130,8 +130,6 @@
       animation: doorFlip 0.5s ease-out;
     }
 
-    body.low-effects .door.open { animation: none; }
-
     .door-number {
       z-index: 3;
       transition: opacity 0.22s ease;
@@ -220,9 +218,7 @@
       to { transform: translateY(110vh); }
     }
 
-    /* -----------------------------
-       IMAGE POPUP / ZOOM MODAL
-    ------------------------------ */
+    /* IMAGE MODAL */
     #img-modal {
       display: none;
       position: fixed;
@@ -234,9 +230,7 @@
       z-index: 30000;
       cursor: pointer;
     }
-    #img-modal.open {
-      display: flex;
-    }
+    #img-modal.open { display: flex; }
     #img-modal-content {
       width: 95vw;
       height: 95vh;
@@ -247,6 +241,7 @@
       box-shadow: 0 0 25px rgba(255,255,255,0.6);
       animation: zoomIn 0.3s ease;
     }
+
     @keyframes zoomIn {
       from { transform: scale(0.7); opacity: 0; }
       to { transform: scale(1); opacity: 1; }
@@ -270,9 +265,7 @@
       transition: opacity 0.4s ease;
       z-index: 25000;
     }
-    #now-playing.show {
-      opacity: 1;
-    }
+    #now-playing.show { opacity: 1; }
   </style>
 </head>
 
@@ -311,7 +304,7 @@
   </div>
 
 <script>
-/* LOW EFFECTS CHECK */
+/* LOW EFFECTS */
 const ua = navigator.userAgent || "";
 let lowEffects = /Web0S|webOS|NetCast|SMART-TV|SmartTV|Tizen|HbbTV/i.test(ua);
 
@@ -381,27 +374,41 @@ if (lowEffects) {
   startSnow("snow-front", 90, 9, 4, 10);
 }
 
-/* AUDIO PRELOAD */
+/* AUDIO PRELOAD SAFE MODE */
 function audioUrl(n) { return `music/${n}.mp3`; }
 
 const preloadContainer = document.getElementById("preload-container");
 const preloadedAudios = [];
 
 for (let i = 1; i <= 25; i++) {
-  const a = document.createElement("audio");
-  a.preload = "auto";
-  a.src = audioUrl(i);
-  a.load();
-  preloadContainer.appendChild(a);
-  preloadedAudios[i] = a;
+  try {
+    const a = document.createElement("audio");
+    a.preload = "auto";
+    a.src = audioUrl(i);
+    preloadContainer.appendChild(a);
+    preloadedAudios[i] = a;
+  } catch(e) {
+    console.warn("Audio preload failed for door", i, e);
+  }
 }
 
-/* --- LOAD PERSISTENT DOOR STATE --- */
+/* PERSISTENT DOOR STATE */
 const yearKey = "openedDoors_2025";
-let openedDoors = JSON.parse(localStorage.getItem(yearKey) || "{}");
+let openedDoors = {};
+
+try {
+  openedDoors = JSON.parse(localStorage.getItem(yearKey)) || {};
+} catch(e) {
+  console.warn("Could not load saved doors:", e);
+  openedDoors = {};
+}
 
 function saveOpenedDoors() {
-  localStorage.setItem(yearKey, JSON.stringify(openedDoors));
+  try {
+    localStorage.setItem(yearKey, JSON.stringify(openedDoors));
+  } catch(e) {
+    console.warn("Could not save door state:", e);
+  }
 }
 
 /* MAIN LOGIC */
@@ -415,7 +422,6 @@ const today = now.getDate();
 const month = now.getMonth();
 const isDecember = month === 11;
 
-/* Sparkles Helper */
 function createDoorSparkles(x, y) {
   if (document.body.classList.contains("low-effects")) return;
   for (let i = 0; i < 8; i++) {
@@ -430,7 +436,7 @@ function createDoorSparkles(x, y) {
 
 if (!window.lastPlayTime) window.lastPlayTime = {};
 
-/* CREATE DOORS */
+/* CREATE ALL DOORS */
 for (let n = 1; n <= 25; n++) {
   const door = document.createElement("div");
   door.className = "door row-" + (Math.floor((n - 1) / 5) + 1);
@@ -443,7 +449,7 @@ for (let n = 1; n <= 25; n++) {
   imgEl.className = "door-image";
   imgEl.src = `images/${n}.png`;
 
-  /* Restore previously opened doors */
+  /* RESTORE SAVED STATE */
   if (openedDoors[n]) {
     door.classList.add("open");
   }
@@ -453,26 +459,22 @@ for (let n = 1; n <= 25; n++) {
 
   door.addEventListener("click", () => {
     const testing = testingToggle.checked;
-    const allowClick =
-      testing ||
-      (isDecember && n <= today);  // Option B rule: can open any door up to today
+    const allowClick = testing || (isDecember && n <= today);
 
     if (!allowClick) {
       alert(`Door ${n} opens on December ${n}.`);
       return;
     }
 
-    /* If newly opened */
-    if (!door.classList.contains("open")) {
-      door.classList.add("open");
-      openedDoors[n] = true;
-      saveOpenedDoors();
+    /* ALWAYS OPEN + ALWAYS SAVE */
+    door.classList.add("open");
+    openedDoors[n] = true;
+    saveOpenedDoors();
 
-      const rect = door.getBoundingClientRect();
-      createDoorSparkles(rect.left + rect.width/2, rect.top + rect.height/2);
-    }
+    const rect = door.getBoundingClientRect();
+    createDoorSparkles(rect.left + rect.width/2, rect.top + rect.height/2);
 
-    /* Christmas Day Message */
+    /* 25th MESSAGE */
     if (n === 25 && (testing || today >= 25)) {
       message.classList.add("show");
       clearTimeout(message.hideTimer);
@@ -489,27 +491,26 @@ for (let n = 1; n <= 25; n++) {
       }, 50);
     }
 
-    /* 30-SECOND NO-RESTART AUDIO LOGIC */
+    /* AUDIO NO-RESTART LOGIC */
     const audioEl = preloadedAudios[n];
     const nowTime = Date.now();
     const last = window.lastPlayTime[n] || 0;
     const secondsSinceLast = (nowTime - last) / 1000;
 
     if (!audioEl.paused && secondsSinceLast < 30) {
-      console.log(`Door ${n}: audio playing, not restarting.`);
+      // no restart
     } else {
       audioEl.volume = 1;
       audioEl.currentTime = 0;
       audioEl.play().catch(() => {
-        setTimeout(() => {
-          audioEl.play().catch(() => {});
-        }, 500);
+        setTimeout(() => audioEl.play().catch(()=>{}), 500);
       });
       window.lastPlayTime[n] = nowTime;
     }
 
     /* SHOW NOW PLAYING BAR */
-    nowPlayingBar.textContent = "🎵 Now Playing: " + (songInfo[n] || `Door ${n}`);
+    nowPlayingBar.textContent =
+      "🎵 Now Playing: " + (songInfo[n] || `Door ${n}`);
     nowPlayingBar.classList.add("show");
 
     clearTimeout(nowPlayingBar.hideTimer);
@@ -517,7 +518,7 @@ for (let n = 1; n <= 25; n++) {
       nowPlayingBar.classList.remove("show");
     }, 20000);
 
-    /* SHOW POPUP IMAGE */
+    /* IMAGE POPUP */
     const modal = document.getElementById("img-modal");
     const modalImg = document.getElementById("img-modal-content");
     modalImg.src = `images/${n}.png`;
