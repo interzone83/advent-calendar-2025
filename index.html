@@ -575,6 +575,33 @@ function createDoorSparkles(x, y) {
   }
 }
 
+/* CHRISTMAS MESSAGE HANDLER */
+function showChristmasMessage() {
+    const message = document.getElementById("christmas-message");
+
+    // Show
+    message.classList.add("show");
+
+    // Auto-hide after 10 seconds
+    clearTimeout(message.hideTimer);
+    message.hideTimer = setTimeout(() => {
+        message.classList.remove("show");
+    }, 10000);
+
+    // Hide on next click
+    setTimeout(() => {
+        const hideOnClick = () => {
+            message.classList.remove("show");
+            document.removeEventListener("click", hideOnClick);
+        };
+        document.addEventListener("click", hideOnClick, { once: true });
+    }, 50);
+}
+
+
+
+
+  
 /* CREATE ALL DOORS */
 for (let n = 1; n <= 25; n++) {
   const door = document.createElement("div");
@@ -613,22 +640,11 @@ for (let n = 1; n <= 25; n++) {
     const rect = door.getBoundingClientRect();
     createDoorSparkles(rect.left + rect.width/2, rect.top + rect.height/2);
 
-    /* 25th MESSAGE */
-    if (n === 25 && (testing || today >= 25)) {
-      message.classList.add("show");
-      clearTimeout(message.hideTimer);
-      message.hideTimer = setTimeout(() => {
-        message.classList.remove("show");
-      }, 10000);
+    /* 25th MESSAGE (fixed) */
+if (n === 25 && (testing || (isDecember && today >= 25))) {
+    showChristmasMessage();
+}
 
-      setTimeout(() => {
-        const hideOnClick = () => {
-          message.classList.remove("show");
-          document.removeEventListener("click", hideOnClick);
-        };
-        document.addEventListener("click", hideOnClick, { once: true });
-      }, 50);
-    }
 
     /* AUDIO NO-RESTART LOGIC (30s window) */
     const audioEl = preloadedAudios[n];
