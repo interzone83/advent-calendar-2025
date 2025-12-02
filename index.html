@@ -644,6 +644,7 @@ for (let n = 1; n <= 25; n++) {
   door.appendChild(imgEl);
 
   door.addEventListener("click", () => {
+    console.log("Door clicked:", n, "Disco songs:", discoSongs);
     const testing = testingToggle.checked;
     const allowClick = testing || (isDecember && n <= today);
 
