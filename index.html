@@ -24,7 +24,6 @@
       position: relative;
     }
 
-    /* SNOW LAYERS */
     #snow-back, #snow-mid, #snow-front {
       position: fixed;
       inset: 0;
@@ -34,34 +33,6 @@
     #snow-back { z-index: 1; }
     #snow-mid { z-index: 2; }
     #snow-front { z-index: 3; }
-
-    /* DISCO LIGHT OVERLAY (Option A — BELOW DOORS) */
-    #disco-overlay {
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      opacity: 0;
-      background: radial-gradient(circle at center,
-        rgba(255, 0, 150, 0.35),
-        rgba(0, 0, 0, 0) 70%
-      );
-      mix-blend-mode: lighten;
-      transition: opacity 1s ease;
-      z-index: 4; /* BELOW DOORS, ABOVE TREE */
-    }
-
-    body.disco-on #disco-overlay {
-      opacity: 1;
-      animation: discoCycle 10s linear infinite;
-    }
-
-    @keyframes discoCycle {
-      0%   { filter: hue-rotate(0deg) brightness(1.0); }
-      25%  { filter: hue-rotate(90deg) brightness(1.1); }
-      50%  { filter: hue-rotate(180deg) brightness(1.2); }
-      75%  { filter: hue-rotate(270deg) brightness(1.1); }
-      100% { filter: hue-rotate(360deg) brightness(1.0); }
-    }
 
     h1 {
       margin: 0.5rem 0 0.15rem;
@@ -116,7 +87,7 @@
     }
 
     #testingToggle {
-      display: none; /* hidden checkbox */
+      display: none; /* hidden checkbox, controlled by gear */
     }
 
     #reset-panel {
@@ -134,7 +105,9 @@
       font-size: 0.8rem;
     }
 
-    #reset-panel.show { display: block; }
+    #reset-panel.show {
+      display: block;
+    }
 
     #reset-panel .reset-title {
       font-weight: 600;
@@ -301,6 +274,23 @@
       animation: pulseGlow 2.5s infinite ease-in-out;
     }
 
+    .sparkle {
+      position: fixed;
+      width: 12px;
+      height: 12px;
+      background: radial-gradient(circle, white, gold);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 20001;
+      animation: sparkleBurst 1.2s forwards ease-out;
+    }
+
+    @keyframes sparkleBurst {
+      0%   { opacity: 1; transform: scale(0.3) rotate(0deg); }
+      50%  { opacity: 1; transform: scale(1.4) rotate(180deg); }
+      100% { opacity: 0; transform: scale(2.2) rotate(360deg); }
+    }
+
     @keyframes pulseGlow {
       0% { text-shadow: 0 0 12px gold, 0 0 25px white; }
       50% { text-shadow: 0 0 22px gold, 0 0 45px white; }
@@ -330,9 +320,7 @@
       z-index: 30000;
       cursor: pointer;
     }
-
     #img-modal.open { display: flex; }
-
     #img-modal-content {
       width: 95vw;
       height: 95vh;
@@ -367,25 +355,45 @@
       transition: opacity 0.4s ease;
       z-index: 25000;
     }
+    #now-playing.show { opacity: 1; }
 
-    #now-playing.show {
-      opacity: 1;
-    }
+    /* DISCO LIGHT OVERLAY */
+#disco-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 5;
+  opacity: 0;
+  background: radial-gradient(circle at center, rgba(255,0,150,0.25), rgba(0,0,0,0) 70%);
+  mix-blend-mode: screen;
+  transition: opacity 1s ease;
+}
+
+body.disco-on #disco-overlay {
+  opacity: 1;
+  animation: discoCycle 12s linear infinite;
+}
+
+@keyframes discoCycle {
+  0%   { filter: hue-rotate(0deg); }
+  25%  { filter: hue-rotate(90deg); }
+  50%  { filter: hue-rotate(180deg); }
+  75%  { filter: hue-rotate(270deg); }
+  100% { filter: hue-rotate(360deg); }
+}
   </style>
 </head>
+
 <body>
 
   <div id="preload-container" style="display:none;"></div>
 
-  <!-- SNOW -->
   <div id="snow-back"></div>
-  <div id="snow-mid"></div>
+  <div id="snow-mid"></"></div>
   <div id="snow-front"></div>
-
-  <!-- DISCO OVERLAY (Option A — below doors) -->
+  
   <div id="disco-overlay"></div>
 
-  <!-- CHRISTMAS MESSAGE -->
   <div id="christmas-message">🎄 Merry Christmas 🎄 Melville! </div>
 
   <!-- IMAGE POPUP -->
@@ -393,7 +401,7 @@
     <img id="img-modal-content" />
   </div>
 
-  <!-- NOW PLAYING BAR -->
+  <!-- NOW PLAYING -->
   <div id="now-playing"></div>
 
   <!-- Testing mode gear + hidden checkbox + reset panel -->
@@ -415,8 +423,9 @@
       <div class="calendar" id="calendar"></div>
     </div>
   </div>
+
 <script>
-/* LOW EFFECTS DETECTION */
+/* LOW EFFECTS */
 const ua = navigator.userAgent || "";
 let lowEffects = /Web0S|webOS|NetCast|SMART-TV|SmartTV|Tizen|HbbTV/i.test(ua);
 
@@ -424,45 +433,44 @@ if (typeof CSS !== "undefined" && CSS.supports) {
   if (!CSS.supports("transform-style", "preserve-3d"))
     lowEffects = true;
 }
-
 if (lowEffects) document.body.classList.add("low-effects");
 
-/* SONGS THAT TRIGGER DISCO EFFECT */
-const discoSongs = [24];
+/* SONGS THAT ACTIVATE THE DISCO EFFECT */
+const discoSongs = [24]; 
+  
 
 /* SONG TITLES */
 const songInfo = {
-  1: "Let's Dance - David Bowie",
-  2: "Petit garçon - Graeme Allwright",
-  3: "Merry Christmas Everyone - Shakin Stevens",
-  4: "Alana - Wes",
-  5: "Résiste - France Galle",
-  6: "Flocon Papillon - Anne Sylvestre",
-  7: "Jingle Bells - Frank Sinatra",
-  8: "Soda Pop - K-Pop Demon Hunters",
-  9: "Jazz fart - Mr Jazz",
+  1: "Song Title 1 – Artist",
+  2: "Song Title 2 – Artist",
+  3: "Song Title 3 – Artist",
+  4: "Song Title 4 – Artist",
+  5: "Song Title 5 – Artist",
+  6: "Song Title 6 – Artist",
+  7: "Song Title 7 – Artist",
+  8: "Song Title 8 – Artist",
+  9: "Song Title 9 – Artist",
   10: "Song Title 10 – Artist",
-  11: "Twinkle Twinkle Little Star",
-  12: "Nothing From Nothing - Billy Preston",
-  13: "I Won't Let You Down - Ok Go",
-  14: "The Grand Old Duke of York - Tim Hart and Friends",
-  15: "Petit papa Noël",
-  16: "Defying Gravity - Wicked",
-  17: "Wheels on the Bus (dance version)",
-  18: "Sir Duke - Stevie Wonder",
-  19: "House of Bamboo - Andy Williams",
-  20: "Ce Qu'on Te Donne Des Huntrix - K-Pop Demon Hunter",
-  21: "You Can't Always Get What You Want - Rolling Stones",
-  22: "No Woman No Cry - Bob Marley",
-  23: "APT - Rose & Bruno Mars",
-  24: "Reel 2 Reel - I like to move it",
+  11: "Song Title 11 – Artist",
+  12: "Song Title 12 – Artist",
+  13: "Song Title 13 – Artist",
+  14: "Song Title 14 – Artist",
+  15: "Song Title 15 – Artist",
+  16: "Song Title 16 – Artist",
+  17: "Song Title 17 – Artist",
+  18: "Song Title 18 – Artist",
+  19: "Song Title 19 – Artist",
+  20: "Song Title 20 – Artist",
+  21: "Song Title 21 – Artist",
+  22: "Song Title 22 – Artist",
+  23: "Song Title 23 – Artist",
+  24: "Song Title 24 – Artist",
   25: "Song Title 25 – Artist"
 };
 
-/* SNOW ENGINE */
+/* SNOW */
 function startSnow(layerId, density, maxSize, speedMin, speedMax) {
   const layer = document.getElementById(layerId);
-
   function createSnowflake() {
     const snow = document.createElement("div");
     snow.style.position = "absolute";
@@ -475,14 +483,11 @@ function startSnow(layerId, density, maxSize, speedMin, speedMax) {
     snow.style.opacity = Math.random() * 0.9 + 0.1;
     snow.style.filter = "blur(1px)";
     snow.style.pointerEvents = "none";
-
     const duration = Math.random() * (speedMax - speedMin) + speedMin;
     snow.style.animation = `fall ${duration}s linear forwards`;
-
     layer.appendChild(snow);
     setTimeout(() => snow.remove(), duration * 1000);
   }
-
   setInterval(createSnowflake, density);
 }
 
@@ -494,18 +499,25 @@ if (lowEffects) {
   startSnow("snow-front", 90, 9, 4, 10);
 }
 
-/* AUDIO PRELOAD */
+
+  
+
+/* AUDIO PRELOAD SAFE MODE */
 function audioUrl(n) { return `music/${n}.mp3`; }
 
 const preloadContainer = document.getElementById("preload-container");
 const preloadedAudios = [];
 
 for (let i = 1; i <= 25; i++) {
-  const a = document.createElement("audio");
-  a.preload = "auto";
-  a.src = audioUrl(i);
-  preloadContainer.appendChild(a);
-  preloadedAudios[i] = a;
+  try {
+    const a = document.createElement("audio");
+    a.preload = "auto";
+    a.src = audioUrl(i);
+    preloadContainer.appendChild(a);
+    preloadedAudios[i] = a;
+  } catch(e) {
+    console.warn("Audio preload failed for door", i, e);
+  }
 }
 
 /* PERSISTENT DOOR STATE */
@@ -515,6 +527,7 @@ let openedDoors = {};
 try {
   openedDoors = JSON.parse(localStorage.getItem(yearKey)) || {};
 } catch(e) {
+  console.warn("Could not load saved doors:", e);
   openedDoors = {};
 }
 
@@ -543,7 +556,7 @@ const isDecember = month === 11;
 
 if (!window.lastPlayTime) window.lastPlayTime = {};
 
-/* TESTING MODE UI */
+/* TESTING UI */
 function updateTestingUI() {
   if (testingToggle.checked) {
     testingToggleButton.classList.add("active");
@@ -559,7 +572,7 @@ testingToggleButton.addEventListener("click", () => {
   updateTestingUI();
 });
 
-/* RESET PANEL BUTTONS */
+/* BUILD RESET PANEL BUTTONS (1–25) */
 for (let i = 1; i <= 25; i++) {
   const btn = document.createElement("button");
   btn.textContent = i;
@@ -572,102 +585,114 @@ for (let i = 1; i <= 25; i++) {
   resetDoorsContainer.appendChild(btn);
 }
 
+/* RESET ALL BUTTON */
 resetAllBtn.addEventListener("click", () => {
   openedDoors = {};
-  localStorage.removeItem(yearKey);
+  try {
+    localStorage.removeItem(yearKey);
+  } catch(e) {
+    console.warn("Could not clear localStorage:", e);
+  }
   location.reload();
 });
 
-/* SPARKLES */
+/* Sparkles Helper */
 function createDoorSparkles(x, y) {
   if (document.body.classList.contains("low-effects")) return;
-
   for (let i = 0; i < 8; i++) {
     const s = document.createElement("div");
     s.className = "sparkle";
-    s.style.left = `${x + (Math.random()*80 - 40)}px`;
-    s.style.top = `${y + (Math.random()*80 - 40)}px`;
+    s.style.left = `calc(${x}px + ${Math.random()*80 - 40}px)`;
+    s.style.top = `calc(${y}px + ${Math.random()*80 - 40}px)`;
     document.body.appendChild(s);
     setTimeout(() => s.remove(), 1200);
   }
 }
 
-/* CHRISTMAS MESSAGE */
+/* CHRISTMAS MESSAGE HANDLER */
 function showChristmasMessage() {
-  message.classList.add("show");
+    const message = document.getElementById("christmas-message");
 
-  clearTimeout(message.hideTimer);
-  message.hideTimer = setTimeout(() => {
-    message.classList.remove("show");
-    document.dispatchEvent(new Event("christmasDismiss"));
-  }, 10000);
+    // Show
+    message.classList.add("show");
 
-  setTimeout(() => {
-    const hideOnClick = () => {
-      message.classList.remove("show");
-      document.dispatchEvent(new Event("christmasDismiss"));
-      document.removeEventListener("click", hideOnClick);
+    // Auto-hide after 10 sec
+    clearTimeout(message.hideTimer);
+    message.hideTimer = setTimeout(() => {
+        message.classList.remove("show");
+        document.dispatchEvent(new Event("christmasDismiss"));
+    }, 10000);
+
+    // Hide on click
+    setTimeout(() => {
+        const hideOnClick = () => {
+            message.classList.remove("show");
+            document.dispatchEvent(new Event("christmasDismiss"));
+            document.removeEventListener("click", hideOnClick);
+        };
+        document.addEventListener("click", hideOnClick, { once: true });
+    }, 50);
+}
+
+
+/* CHRISTMAS MESSAGE FIRST, THEN IMAGE */
+function triggerChristmasSequence(doorNumber) {
+    showChristmasMessage();
+
+    // After message disappears OR on click
+    const openImageAndMusic = () => {
+        openDoorImageAndMusic(doorNumber);
+        document.removeEventListener("christmasDismiss", openImageAndMusic);
     };
-    document.addEventListener("click", hideOnClick, { once: true });
-  }, 50);
+
+    // Custom event fired when message hides
+    document.addEventListener("christmasDismiss", openImageAndMusic, { once: true });
 }
 
-/* SEQUENCE: MESSAGE FIRST → THEN IMAGE */
-function triggerChristmasSequence(n) {
-  showChristmasMessage();
-
-  const openAfter = () => {
-    openDoorImageAndMusic(n);
-    document.removeEventListener("christmasDismiss", openAfter);
-  };
-
-  document.addEventListener("christmasDismiss", openAfter, { once: true });
-}
-
-/* OPEN IMAGE + MUSIC + DISCO EFFECT */
 function openDoorImageAndMusic(n) {
-
-  /* DISCO EFFECT */
-  if (discoSongs.includes(n)) {
+    /* DISCO EFFECT: turn on for selected songs */
+if (discoSongs.includes(n)) {
     document.body.classList.add("disco-on");
-  } else {
+} else {
     document.body.classList.remove("disco-on");
-  }
+}
+  
+    // IMAGE POPUP
+    const modal = document.getElementById("img-modal");
+    const modalImg = document.getElementById("img-modal-content");
+    modalImg.src = `images/${n}.png`;
+    modal.classList.add("open");
 
-  /* IMAGE POPUP */
-  const modal = document.getElementById("img-modal");
-  const modalImg = document.getElementById("img-modal-content");
-  modalImg.src = `images/${n}.png`;
-  modal.classList.add("open");
+    // AUDIO
+    const audioEl = preloadedAudios[n];
+    const nowTime = Date.now();
+    const last = window.lastPlayTime[n] || 0;
+    const secondsSinceLast = (nowTime - last) / 1000;
 
-  /* AUDIO */
-  const audioEl = preloadedAudios[n];
-  const nowTime = Date.now();
-  const last = window.lastPlayTime[n] || 0;
-  const secondsSinceLast = (nowTime - last) / 1000;
+    if (!audioEl.paused && secondsSinceLast < 30) {
+        // Don't restart
+    } else {
+        audioEl.volume = 1;
+        audioEl.currentTime = 0;
+        audioEl.play().catch(() => {
+            setTimeout(() => audioEl.play().catch(()=>{}), 500);
+        });
+        window.lastPlayTime[n] = nowTime;
+    }
 
-  if (!audioEl.paused && secondsSinceLast < 30) {
-    // Do not restart
-  } else {
-    audioEl.volume = 1;
-    audioEl.currentTime = 0;
-    audioEl.play().catch(() => {
-      setTimeout(() => audioEl.play().catch(()=>{}), 500);
-    });
-    window.lastPlayTime[n] = nowTime;
-  }
+    // NOW PLAYING BAR
+    nowPlayingBar.textContent = "🎵 Now Playing: " + (songInfo[n] || `Door ${n}`);
+    nowPlayingBar.classList.add("show");
 
-  /* NOW PLAYING BAR */
-  nowPlayingBar.textContent = "🎵 Now Playing: " + (songInfo[n] || `Door ${n}`);
-  nowPlayingBar.classList.add("show");
-
-  clearTimeout(nowPlayingBar.hideTimer);
-  nowPlayingBar.hideTimer = setTimeout(() => {
-    nowPlayingBar.classList.remove("show");
-  }, 20000);
+    clearTimeout(nowPlayingBar.hideTimer);
+    nowPlayingBar.hideTimer = setTimeout(() => {
+        nowPlayingBar.classList.remove("show");
+    }, 20000);
 }
 
-/* BUILD ALL 25 DOORS */
+
+  
+/* CREATE ALL DOORS */
 for (let n = 1; n <= 25; n++) {
   const door = document.createElement("div");
   door.className = "door row-" + (Math.floor((n - 1) / 5) + 1);
@@ -697,7 +722,7 @@ for (let n = 1; n <= 25; n++) {
       return;
     }
 
-    /* OPEN + SAVE */
+    /* ALWAYS OPEN + ALWAYS SAVE */
     door.classList.add("open");
     openedDoors[n] = true;
     saveOpenedDoors();
@@ -705,25 +730,57 @@ for (let n = 1; n <= 25; n++) {
     const rect = door.getBoundingClientRect();
     createDoorSparkles(rect.left + rect.width/2, rect.top + rect.height/2);
 
-    /* SPECIAL: DOOR 25 */
-    if (n === 25 && (testing || (isDecember && today >= 25))) {
-      triggerChristmasSequence(n);
-      return;
+    /* 25th: Show message FIRST, then image */
+if (n === 25 && (testing || (isDecember && today >= 25))) {
+    triggerChristmasSequence(n);
+    return; // Prevent immediate image popup
+}
+
+
+
+    /* AUDIO NO-RESTART LOGIC (30s window) */
+    const audioEl = preloadedAudios[n];
+    const nowTime = Date.now();
+    const last = window.lastPlayTime[n] || 0;
+    const secondsSinceLast = (nowTime - last) / 1000;
+
+    if (!audioEl.paused && secondsSinceLast < 30) {
+      // Do not restart if still playing and within 30s
+    } else {
+      audioEl.volume = 1;
+      audioEl.currentTime = 0;
+      audioEl.play().catch(() => {
+        setTimeout(() => audioEl.play().catch(()=>{}), 500);
+      });
+      window.lastPlayTime[n] = nowTime;
     }
 
-    /* NORMAL: OPEN IMAGE + MUSIC */
-    openDoorImageAndMusic(n);
+    /* SHOW NOW PLAYING BAR */
+    nowPlayingBar.textContent =
+      "🎵 Now Playing: " + (songInfo[n] || `Door ${n}`);
+    nowPlayingBar.classList.add("show");
+
+    clearTimeout(nowPlayingBar.hideTimer);
+    nowPlayingBar.hideTimer = setTimeout(() => {
+      nowPlayingBar.classList.remove("show");
+    }, 20000);
+
+    /* IMAGE POPUP */
+    const modal = document.getElementById("img-modal");
+    const modalImg = document.getElementById("img-modal-content");
+    modalImg.src = `images/${n}.png`;
+    modal.classList.add("open");
   });
 
   calendar.appendChild(door);
 }
 
-/* CLOSE MODAL */
+/* CLOSE POPUP */
 document.getElementById("img-modal").addEventListener("click", () => {
   document.getElementById("img-modal").classList.remove("open");
 });
 
-/* Initialize testing UI */
+/* Initial testing UI state (in case checkbox default changes) */
 updateTestingUI();
 </script>
 
