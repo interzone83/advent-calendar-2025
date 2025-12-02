@@ -47,22 +47,110 @@
       z-index: 10;
     }
 
+    /* Testing mode gear + reset panel */
     .testing-wrapper {
-      position: absolute;
-      top: 0.5rem;
-      left: 0.5rem;
+      position: fixed;
+      bottom: 12px;
+      left: 12px;
       z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      align-items: flex-start;
     }
 
-    .testing-toggle {
-      padding: 0.3rem 0.7rem;
-      background: rgba(0, 0, 0, 0.4);
-      border-radius: 999px;
+    #testingToggleButton {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
       border: 1px solid rgba(255,255,255,0.35);
+      background: rgba(0,0,0,0.45);
+      color: rgba(255,255,255,0.8);
       display: flex;
       align-items: center;
-      gap: 0.25rem;
-      font-size: 0.9rem;
+      justify-content: center;
+      font-size: 20px;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+      transition: background 0.2s ease, transform 0.15s ease, color 0.2s ease;
+    }
+
+    #testingToggleButton:hover {
+      transform: translateY(-1px);
+      background: rgba(0,0,0,0.7);
+    }
+
+    #testingToggleButton.active {
+      background: rgba(255,215,0,0.2);
+      color: gold;
+      border-color: gold;
+    }
+
+    #testingToggle {
+      display: none; /* hidden checkbox, controlled by gear */
+    }
+
+    #reset-panel {
+      display: none;
+      position: fixed;
+      bottom: 60px;
+      left: 12px;
+      padding: 8px 10px;
+      background: rgba(0,0,0,0.75);
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.3);
+      box-shadow: 0 6px 18px rgba(0,0,0,0.6);
+      z-index: 9998;
+      max-width: 260px;
+      font-size: 0.8rem;
+    }
+
+    #reset-panel.show {
+      display: block;
+    }
+
+    #reset-panel .reset-title {
+      font-weight: 600;
+      color: #ffd700;
+      margin-bottom: 6px;
+      font-size: 0.85rem;
+    }
+
+    #reset-doors-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-bottom: 6px;
+    }
+
+    .reset-door-btn {
+      border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 6px;
+      background: rgba(255,255,255,0.05);
+      color: #fff;
+      padding: 2px 6px;
+      font-size: 0.7rem;
+      cursor: pointer;
+    }
+
+    .reset-door-btn:hover {
+      background: rgba(255,255,255,0.2);
+    }
+
+    #reset-all-btn {
+      width: 100%;
+      border-radius: 6px;
+      border: 1px solid rgba(255,80,80,0.8);
+      background: rgba(255,0,0,0.3);
+      color: #ffeaea;
+      padding: 4px 6px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      margin-top: 4px;
+    }
+
+    #reset-all-btn:hover {
+      background: rgba(255,0,0,0.5);
     }
 
     .calendar-wrapper {
@@ -129,6 +217,8 @@
       box-shadow: 0 0 16px rgba(255,255,255,0.6);
       animation: doorFlip 0.5s ease-out;
     }
+
+    body.low-effects .door.open { animation: none; }
 
     .door-number {
       z-index: 3;
@@ -274,7 +364,7 @@
   <div id="preload-container" style="display:none;"></div>
 
   <div id="snow-back"></div>
-  <div id="snow-mid"></div>
+  <div id="snow-mid"></"></div>
   <div id="snow-front"></div>
 
   <div id="christmas-message">🎄 Merry Christmas Melville! 🎄</div>
@@ -287,11 +377,15 @@
   <!-- NOW PLAYING -->
   <div id="now-playing"></div>
 
+  <!-- Testing mode gear + hidden checkbox + reset panel -->
   <div class="testing-wrapper">
-    <label class="testing-toggle">
-      <input type="checkbox" id="testingToggle" />
-      Testing mode
-    </label>
+    <button id="testingToggleButton" title="Testing mode">⚙️</button>
+    <input type="checkbox" id="testingToggle" />
+    <div id="reset-panel">
+      <div class="reset-title">Reset doors (testing only)</div>
+      <div id="reset-doors-container"></div>
+      <button id="reset-all-btn">Reset ALL doors</button>
+    </div>
   </div>
 
   <h1>Melville's Musical Advent Calendar 2025</h1>
@@ -411,9 +505,13 @@ function saveOpenedDoors() {
   }
 }
 
-/* MAIN LOGIC */
+/* MAIN ELEMENTS */
 const calendar = document.getElementById("calendar");
 const testingToggle = document.getElementById("testingToggle");
+const testingToggleButton = document.getElementById("testingToggleButton");
+const resetPanel = document.getElementById("reset-panel");
+const resetDoorsContainer = document.getElementById("reset-doors-container");
+const resetAllBtn = document.getElementById("reset-all-btn");
 const message = document.getElementById("christmas-message");
 const nowPlayingBar = document.getElementById("now-playing");
 
@@ -422,6 +520,49 @@ const today = now.getDate();
 const month = now.getMonth();
 const isDecember = month === 11;
 
+if (!window.lastPlayTime) window.lastPlayTime = {};
+
+/* TESTING UI */
+function updateTestingUI() {
+  if (testingToggle.checked) {
+    testingToggleButton.classList.add("active");
+    resetPanel.classList.add("show");
+  } else {
+    testingToggleButton.classList.remove("active");
+    resetPanel.classList.remove("show");
+  }
+}
+
+testingToggleButton.addEventListener("click", () => {
+  testingToggle.checked = !testingToggle.checked;
+  updateTestingUI();
+});
+
+/* BUILD RESET PANEL BUTTONS (1–25) */
+for (let i = 1; i <= 25; i++) {
+  const btn = document.createElement("button");
+  btn.textContent = i;
+  btn.className = "reset-door-btn";
+  btn.addEventListener("click", () => {
+    delete openedDoors[i];
+    saveOpenedDoors();
+    location.reload();
+  });
+  resetDoorsContainer.appendChild(btn);
+}
+
+/* RESET ALL BUTTON */
+resetAllBtn.addEventListener("click", () => {
+  openedDoors = {};
+  try {
+    localStorage.removeItem(yearKey);
+  } catch(e) {
+    console.warn("Could not clear localStorage:", e);
+  }
+  location.reload();
+});
+
+/* Sparkles Helper */
 function createDoorSparkles(x, y) {
   if (document.body.classList.contains("low-effects")) return;
   for (let i = 0; i < 8; i++) {
@@ -433,8 +574,6 @@ function createDoorSparkles(x, y) {
     setTimeout(() => s.remove(), 1200);
   }
 }
-
-if (!window.lastPlayTime) window.lastPlayTime = {};
 
 /* CREATE ALL DOORS */
 for (let n = 1; n <= 25; n++) {
@@ -491,14 +630,14 @@ for (let n = 1; n <= 25; n++) {
       }, 50);
     }
 
-    /* AUDIO NO-RESTART LOGIC */
+    /* AUDIO NO-RESTART LOGIC (30s window) */
     const audioEl = preloadedAudios[n];
     const nowTime = Date.now();
     const last = window.lastPlayTime[n] || 0;
     const secondsSinceLast = (nowTime - last) / 1000;
 
     if (!audioEl.paused && secondsSinceLast < 30) {
-      // no restart
+      // Do not restart if still playing and within 30s
     } else {
       audioEl.volume = 1;
       audioEl.currentTime = 0;
@@ -532,6 +671,9 @@ for (let n = 1; n <= 25; n++) {
 document.getElementById("img-modal").addEventListener("click", () => {
   document.getElementById("img-modal").classList.remove("open");
 });
+
+/* Initial testing UI state (in case checkbox default changes) */
+updateTestingUI();
 </script>
 
 </body>
