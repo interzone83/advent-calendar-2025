@@ -356,6 +356,31 @@
       z-index: 25000;
     }
     #now-playing.show { opacity: 1; }
+
+    /* DISCO LIGHT OVERLAY */
+#disco-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 5;
+  opacity: 0;
+  background: radial-gradient(circle at center, rgba(255,0,150,0.25), rgba(0,0,0,0) 70%);
+  mix-blend-mode: screen;
+  transition: opacity 1s ease;
+}
+
+body.disco-on #disco-overlay {
+  opacity: 1;
+  animation: discoCycle 12s linear infinite;
+}
+
+@keyframes discoCycle {
+  0%   { filter: hue-rotate(0deg); }
+  25%  { filter: hue-rotate(90deg); }
+  50%  { filter: hue-rotate(180deg); }
+  75%  { filter: hue-rotate(270deg); }
+  100% { filter: hue-rotate(360deg); }
+}
   </style>
 </head>
 
@@ -407,6 +432,10 @@ if (typeof CSS !== "undefined" && CSS.supports) {
     lowEffects = true;
 }
 if (lowEffects) document.body.classList.add("low-effects");
+
+/* SONGS THAT ACTIVATE THE DISCO EFFECT */
+const discoSongs = [3, 7, 12, 18, 24]; 
+  
 
 /* SONG TITLES */
 const songInfo = {
@@ -467,6 +496,9 @@ if (lowEffects) {
   startSnow("snow-mid", 150, 6, 6, 12);
   startSnow("snow-front", 90, 9, 4, 10);
 }
+
+<div id="disco-overlay"></div>
+  
 
 /* AUDIO PRELOAD SAFE MODE */
 function audioUrl(n) { return `music/${n}.mp3`; }
@@ -616,6 +648,13 @@ function triggerChristmasSequence(doorNumber) {
 }
 
 function openDoorImageAndMusic(n) {
+    /* DISCO EFFECT: turn on for selected songs */
+if (discoSongs.includes(n)) {
+    document.body.classList.add("disco-on");
+} else {
+    document.body.classList.remove("disco-on");
+}
+  
     // IMAGE POPUP
     const modal = document.getElementById("img-modal");
     const modalImg = document.getElementById("img-modal-content");
