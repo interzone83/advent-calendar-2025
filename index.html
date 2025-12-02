@@ -40,17 +40,22 @@ body {
   position: fixed;
   inset: 0;
   pointer-events: none;
-  z-index: 4; /* under doors, above snow */
-  opacity: 0;
-  opacity: 1 !important;
-  background: radial-gradient(circle at center, rgba(255,0,0,0.8), rgba(0,255,0,0.8), rgba(0,0,255,0.8));
+  z-index: 4;
+  opacity: 0; /* hidden by default */
+  background: radial-gradient(circle at center,
+      rgba(255,0,150,0.08),
+      rgba(0,0,0,0) 70%);
   mix-blend-mode: screen;
   transition: opacity 1s ease;
 }
+
+/* ACTIVE DISCO */
 body.disco-on #disco-overlay {
   opacity: 1;
   animation: discoCycle 12s linear infinite;
 }
+
+/* COLOUR CYCLING */
 @keyframes discoCycle {
   0% { filter: hue-rotate(0deg); }
   25% { filter: hue-rotate(90deg); }
@@ -58,6 +63,7 @@ body.disco-on #disco-overlay {
   75% { filter: hue-rotate(270deg); }
   100% { filter: hue-rotate(360deg); }
 }
+
 
 /* TITLE */
 h1 {
