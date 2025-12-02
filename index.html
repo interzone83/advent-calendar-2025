@@ -582,16 +582,18 @@ function showChristmasMessage() {
     // Show
     message.classList.add("show");
 
-    // Auto-hide after 10 seconds
+    // Auto-hide after 10 sec
     clearTimeout(message.hideTimer);
     message.hideTimer = setTimeout(() => {
         message.classList.remove("show");
+        document.dispatchEvent(new Event("christmasDismiss"));
     }, 10000);
 
-    // Hide on next click
+    // Hide on click
     setTimeout(() => {
         const hideOnClick = () => {
             message.classList.remove("show");
+            document.dispatchEvent(new Event("christmasDismiss"));
             document.removeEventListener("click", hideOnClick);
         };
         document.addEventListener("click", hideOnClick, { once: true });
@@ -599,6 +601,53 @@ function showChristmasMessage() {
 }
 
 
+/* CHRISTMAS MESSAGE FIRST, THEN IMAGE */
+function triggerChristmasSequence(doorNumber) {
+    showChristmasMessage();
+
+    // After message disappears OR on click
+    const openImageAndMusic = () => {
+        openDoorImageAndMusic(doorNumber);
+        document.removeEventListener("christmasDismiss", openImageAndMusic);
+    };
+
+    // Custom event fired when message hides
+    document.addEventListener("christmasDismiss", openImageAndMusic, { once: true });
+}
+
+function openDoorImageAndMusic(n) {
+    // IMAGE POPUP
+    const modal = document.getElementById("img-modal");
+    const modalImg = document.getElementById("img-modal-content");
+    modalImg.src = `images/${n}.png`;
+    modal.classList.add("open");
+
+    // AUDIO
+    const audioEl = preloadedAudios[n];
+    const nowTime = Date.now();
+    const last = window.lastPlayTime[n] || 0;
+    const secondsSinceLast = (nowTime - last) / 1000;
+
+    if (!audioEl.paused && secondsSinceLast < 30) {
+        // Don't restart
+    } else {
+        audioEl.volume = 1;
+        audioEl.currentTime = 0;
+        audioEl.play().catch(() => {
+            setTimeout(() => audioEl.play().catch(()=>{}), 500);
+        });
+        window.lastPlayTime[n] = nowTime;
+    }
+
+    // NOW PLAYING BAR
+    nowPlayingBar.textContent = "🎵 Now Playing: " + (songInfo[n] || `Door ${n}`);
+    nowPlayingBar.classList.add("show");
+
+    clearTimeout(nowPlayingBar.hideTimer);
+    nowPlayingBar.hideTimer = setTimeout(() => {
+        nowPlayingBar.classList.remove("show");
+    }, 20000);
+}
 
 
   
@@ -640,10 +689,12 @@ for (let n = 1; n <= 25; n++) {
     const rect = door.getBoundingClientRect();
     createDoorSparkles(rect.left + rect.width/2, rect.top + rect.height/2);
 
-    /* 25th MESSAGE (fixed) */
+    /* 25th: Show message FIRST, then image */
 if (n === 25 && (testing || (isDecember && today >= 25))) {
-    showChristmasMessage();
+    triggerChristmasSequence(n);
+    return; // Prevent immediate image popup
 }
+
 
 
     /* AUDIO NO-RESTART LOGIC (30s window) */
