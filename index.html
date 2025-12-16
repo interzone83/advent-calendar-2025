@@ -1,200 +1,223 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<title>Melville's Musical Advent Calendar 2025</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8" />
+  <title>Melville's Musical Advent Calendar 2025</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="data:,">
 
-<style>
-* { box-sizing: border-box; }
+  <style>
+    * { box-sizing: border-box; }
+    :root { --door-gap: 4%; }
 
-:root { --door-gap: 4%; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: url("tree.jpg") center center / cover no-repeat fixed;
+      color: #fff;
+      text-align: center;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow: hidden;
+      position: relative;
+    }
 
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: url("tree.jpg") center center / cover no-repeat fixed;
-  color: #fff;
-  text-align: center;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  overflow: hidden;
-  position: relative;
-}
+    #snow-back, #snow-mid, #snow-front {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+    }
+    #snow-back { z-index: 1; }
+    #snow-mid  { z-index: 2; }
+    #snow-front{ z-index: 3; }
 
-#snow-back, #snow-mid, #snow-front {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-}
-#snow-back { z-index: 1; }
-#snow-mid { z-index: 2; }
-#snow-front { z-index: 3; }
+    h1 {
+      margin: 0.5rem 0 0.15rem;
+      font-size: clamp(1.6rem, 3vw, 2.3rem);
+      z-index: 10;
+    }
 
-h1 {
-  margin: 0.5rem 0 0.15rem;
-  font-size: clamp(1.6rem, 3vw, 2.3rem);
-  z-index: 10;
-}
+    .subtitle {
+      margin: 0 0 0.5rem;
+      font-size: 0.9rem;
+      opacity: 0.9;
+      z-index: 10;
+    }
 
-.subtitle {
-  margin: 0 0 0.5rem;
-  font-size: 0.9rem;
-  opacity: 0.9;
-  z-index: 10;
-}
+    /* --- TESTING / RESET UI --- */
+    .testing-wrapper {
+      position: fixed;
+      bottom: 12px;
+      left: 12px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      align-items: flex-start;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+      padding: 6px;
+      border-radius: 14px;
+    }
+    .testing-wrapper:hover { opacity: 1; }
 
-/* Calendar */
-.calendar-wrapper {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex: 1;
-  z-index: 10;
-}
+    #testingToggleButton {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.35);
+      background: rgba(0,0,0,0.45);
+      color: rgba(255,255,255,0.8);
+      font-size: 20px;
+      cursor: pointer;
+    }
+    #testingToggleButton.active {
+      background: rgba(255,215,0,0.2);
+      color: gold;
+      border-color: gold;
+    }
+    #testingToggle { display: none; }
 
-.calendar-box {
-  width: min(95vw, 75vh);
-  height: min(95vw, 75vh);
-  perspective: 1200px;
-}
+    #reset-panel {
+      display: none;
+      position: fixed;
+      bottom: 60px;
+      left: 12px;
+      padding: 8px 10px;
+      background: rgba(0,0,0,0.75);
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.3);
+      z-index: 9998;
+      font-size: 0.8rem;
+    }
+    #reset-panel.show { display: block; }
 
-.calendar {
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.25);
-  border-radius: 18px;
-  padding: var(--door-gap);
-  display: grid;
-  grid-template-columns: repeat(5,1fr);
-  grid-template-rows: repeat(5,1fr);
-  gap: var(--door-gap);
-}
+    /* --- CALENDAR --- */
+    .calendar-wrapper {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+    }
+    .calendar-box {
+      width: min(95vw, 75vh);
+      height: min(95vw, 75vh);
+      perspective: 1200px;
+    }
+    .calendar {
+      width: 100%;
+      height: 100%;
+      display: grid;
+      grid-template-columns: repeat(5,1fr);
+      grid-template-rows: repeat(5,1fr);
+      gap: var(--door-gap);
+      padding: var(--door-gap);
+      background: rgba(0,0,0,0.25);
+      border-radius: 18px;
+    }
 
-.door {
-  background: rgba(200,0,0,0.9);
-  border-radius: 12px;
-  border: 2px solid gold;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  font-weight: 700;
-  font-size: clamp(16px,2.4vw,22px);
-  position: relative;
-  overflow: hidden;
-  transition: 0.2s ease;
-}
+    .door {
+      background: rgba(200,0,0,0.9);
+      border-radius: 12px;
+      border: 2px solid gold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-weight: 700;
+      position: relative;
+      overflow: hidden;
+    }
+    .door.open { background: rgba(0,90,0,0.95); }
 
-.door:hover { transform: scale(1.03); }
+    .door-number { z-index: 2; }
+    .door.open .door-number { opacity: 0; }
 
-.door.open {
-  background: rgba(0,90,0,0.95);
-}
+    .door-image {
+      position: absolute;
+      inset: 4px;
+      width: calc(100% - 8px);
+      height: calc(100% - 8px);
+      object-fit: cover;
+      border-radius: 8px;
+      opacity: 0;
+    }
+    .door.open .door-image { opacity: 1; }
 
-.door-number {
-  z-index: 2;
-  transition: opacity 0.2s;
-}
+    /* --- IMAGE MODAL --- */
+    #img-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.8);
+      justify-content: center;
+      align-items: center;
+      z-index: 30000;
+      cursor: pointer;
+    }
+    #img-modal.open { display: flex; }
+    #img-modal-content {
+      width: 95vw;
+      height: 95vh;
+      object-fit: contain;
+      border-radius: 16px;
+    }
 
-.door.open .door-number { opacity: 0; }
+    /* --- CHRISTMAS MESSAGE --- */
+    #christmas-message {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: clamp(2.5rem,5vw,4rem);
+      background: rgba(0,0,0,0.7);
+      color: gold;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 25000;
+      transition: opacity 0.4s;
+    }
+    #christmas-message.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
 
-.door-image {
-  position: absolute;
-  inset: 4px;
-  width: calc(100% - 8px);
-  height: calc(100% - 8px);
-  object-fit: cover;
-  border-radius: 8px;
-  opacity: 0;
-  transition: opacity 0.25s;
-}
+    /* --- NOW PLAYING --- */
+    #now-playing {
+      position: fixed;
+      bottom: 1.5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(90vw, 420px);
+      background: rgba(0,0,0,0.7);
+      border-radius: 12px;
+      padding: 0.6rem 1rem;
+      color: gold;
+      opacity: 0;
+      transition: opacity 0.3s;
+      z-index: 26000;
+    }
+    #now-playing.show { opacity: 1; }
 
-.door.open .door-image { opacity: 1; }
+    #now-playing-title { margin-bottom: 6px; }
 
-/* Image modal */
-#img-modal {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.85);
-  justify-content: center;
-  align-items: center;
-  z-index: 30000;
-  cursor: pointer;
-}
-
-#img-modal.open { display: flex; }
-
-#img-modal-content {
-  width: 95vw;
-  height: 95vh;
-  object-fit: contain;
-  border-radius: 16px;
-}
-
-/* Christmas message */
-#christmas-message {
-  position: fixed;
-  inset: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: clamp(2.5rem,5vw,4rem);
-  font-weight: bold;
-  color: gold;
-  background: rgba(0,0,0,0.7);
-  opacity: 0;
-  pointer-events: none;
-  z-index: 25000;
-  transition: opacity 0.4s;
-}
-
-#christmas-message.show {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-/* NOW PLAYING BAR */
-#now-playing {
-  position: fixed;
-  bottom: 1.5rem;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0,0,0,0.7);
-  border-radius: 12px;
-  padding: 0.6rem 1rem;
-  width: min(90vw, 420px);
-  color: gold;
-  font-size: 0.95rem;
-  opacity: 0;
-  transition: opacity 0.3s;
-  z-index: 26000;
-}
-
-#now-playing.show { opacity: 1; }
-
-#now-playing-title {
-  margin-bottom: 6px;
-}
-
-#progress-bar {
-  width: 100%;
-  height: 6px;
-  background: rgba(255,255,255,0.25);
-  border-radius: 6px;
-  overflow: hidden;
-}
-
-#progress-fill {
-  height: 100%;
-  width: 0%;
-  background: gold;
-}
-</style>
+    #progress-bar {
+      width: 100%;
+      height: 6px;
+      background: rgba(255,255,255,0.25);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    #progress-fill {
+      height: 100%;
+      width: 0%;
+      background: gold;
+    }
+  </style>
 </head>
 
 <body>
@@ -205,15 +228,11 @@ h1 {
 
 <div id="christmas-message">🎄 Merry Christmas Melville! 🎄</div>
 
-<div id="img-modal">
-  <img id="img-modal-content">
-</div>
+<div id="img-modal"><img id="img-modal-content"></div>
 
 <div id="now-playing">
   <div id="now-playing-title"></div>
-  <div id="progress-bar">
-    <div id="progress-fill"></div>
-  </div>
+  <div id="progress-bar"><div id="progress-fill"></div></div>
 </div>
 
 <h1>Melville's Musical Advent Calendar 2025</h1>
@@ -226,17 +245,16 @@ h1 {
 </div>
 
 <script>
-/* Song info */
 const songInfo = {
   1:"Let's Dance – David Bowie",
   2:"Petit garçon – Graeme Allwright",
-  3:"Merry Christmas Everyone – Shakin' Stevens",
+  3:"Merry Christmas Everyone – Shakin Stevens",
   4:"Alana – Wes",
   5:"Résiste – France Gall",
   6:"Flocon Papillon – Anne Sylvestre",
   7:"Jingle Bells – Frank Sinatra",
   8:"Soda Pop – K-Pop Demon Hunters",
-  9:"Jazz Fart – Mr Jazz",
+  9:"Jazz fart – Mr Jazz",
   10:"Song Title 10",
   11:"Twinkle Twinkle Little Star",
   12:"Nothing From Nothing – Billy Preston",
@@ -244,7 +262,7 @@ const songInfo = {
   14:"Grand Old Duke of York",
   15:"Petit Papa Noël",
   16:"Defying Gravity – Wicked",
-  17:"Wheels on the Bus (Dance)",
+  17:"Wheels on the Bus",
   18:"Sir Duke – Stevie Wonder",
   19:"House of Bamboo – Andy Williams",
   20:"Ce Qu'on Te Donne – Huntrix",
@@ -255,38 +273,45 @@ const songInfo = {
   25:"Special Christmas Song"
 };
 
-/* Audio */
+const calendar = document.getElementById("calendar");
+const nowPlaying = document.getElementById("now-playing");
+const nowPlayingTitle = document.getElementById("now-playing-title");
+const progressFill = document.getElementById("progress-fill");
+const message = document.getElementById("christmas-message");
+
 const audios = {};
 let currentAudio = null;
 let progressTimer = null;
 
-function stopCurrentAudio() {
+function playSong(n) {
   if (currentAudio) {
     currentAudio.pause();
     currentAudio.currentTime = 0;
-    currentAudio = null;
   }
-  clearInterval(progressTimer);
-  document.getElementById("now-playing").classList.remove("show");
-}
 
-/* Progress bar */
-function startProgress(audio) {
-  const fill = document.getElementById("progress-fill");
+  if (!audios[n]) audios[n] = new Audio(`music/${n}.mp3`);
+  const audio = audios[n];
+  currentAudio = audio;
+
+  nowPlayingTitle.textContent = "🎵 " + (songInfo[n] || `Door ${n}`);
+  nowPlaying.classList.add("show");
+
+  audio.play();
+
   clearInterval(progressTimer);
   progressTimer = setInterval(() => {
-    if (!audio.duration) return;
-    fill.style.width = (audio.currentTime / audio.duration) * 100 + "%";
+    if (audio.duration) {
+      progressFill.style.width = (audio.currentTime / audio.duration) * 100 + "%";
+    }
   }, 300);
 
   audio.onended = () => {
     clearInterval(progressTimer);
-    document.getElementById("now-playing").classList.remove("show");
+    nowPlaying.classList.remove("show");
+    progressFill.style.width = "0%";
   };
 }
 
-/* Calendar */
-const calendar = document.getElementById("calendar");
 const now = new Date();
 const today = now.getDate();
 const isDecember = now.getMonth() === 11;
@@ -296,7 +321,7 @@ for (let n = 1; n <= 25; n++) {
   door.className = "door";
   door.innerHTML = `<div class="door-number">${n}</div><img class="door-image" src="images/${n}.png">`;
 
-  door.addEventListener("click", () => {
+  door.onclick = () => {
     if (!isDecember || n > today) {
       alert(`Door ${n} opens on December ${n}`);
       return;
@@ -304,37 +329,23 @@ for (let n = 1; n <= 25; n++) {
 
     door.classList.add("open");
 
-    if (!audios[n]) {
-      audios[n] = new Audio(`music/${n}.mp3`);
-    }
-
-    stopCurrentAudio();
-    currentAudio = audios[n];
-    currentAudio.play();
-
-    document.getElementById("now-playing-title").textContent =
-      "🎵 " + (songInfo[n] || `Door ${n}`);
-    document.getElementById("now-playing").classList.add("show");
-
-    startProgress(currentAudio);
-
     if (n === 25) {
-      const msg = document.getElementById("christmas-message");
-      msg.classList.add("show");
-      setTimeout(() => msg.classList.remove("show"), 10000);
+      playSong(25);
+      message.classList.add("show");
+      setTimeout(() => message.classList.remove("show"), 10000);
+    } else {
+      playSong(n);
     }
 
-    const modal = document.getElementById("img-modal");
     document.getElementById("img-modal-content").src = `images/${n}.png`;
-    modal.classList.add("open");
-  });
+    document.getElementById("img-modal").classList.add("open");
+  };
 
   calendar.appendChild(door);
 }
 
-document.getElementById("img-modal").addEventListener("click", () => {
+document.getElementById("img-modal").onclick = () =>
   document.getElementById("img-modal").classList.remove("open");
-});
 </script>
 
 </body>
