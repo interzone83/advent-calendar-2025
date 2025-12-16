@@ -623,30 +623,37 @@ function openDoorImageAndMusic(n) {
   modalImg.src = `images/${n}.png`;
   modal.classList.add("open");
 
-  // NOW PLAYING BAR
-  nowPlayingBar.textContent = "🎵 Now Playing: " + (songInfo[n] || `Door ${n}`);
-  nowPlayingBar.classList.add("show");
-  clearTimeout(nowPlayingBar.hideTimer);
-  nowPlayingBar.hideTimer = setTimeout(() => {
-    nowPlayingBar.classList.remove("show");
-  }, 20000);
-
   // AUDIO
   const audioEl = preloadedAudios[n];
   if (!audioEl) return;
 
   // Stop previous audio if different
   if (currentAudio && currentAudio !== audioEl) {
-    try { currentAudio.pause(); currentAudio.currentTime = 0; } catch(e) {}
+    try {
+      currentAudio.pause();
+      currentAudio.currentTime = 0;
+    } catch(e) {}
   }
   currentAudio = audioEl;
 
+  // NOW PLAYING BAR — SHOW
+  nowPlayingBar.textContent =
+    "🎵 Now Playing: " + (songInfo[n] || `Door ${n}`);
+  nowPlayingBar.classList.add("show");
+
+  // PLAY AUDIO
   audioEl.volume = 1;
   audioEl.currentTime = 0;
   audioEl.play().catch(() => {
     setTimeout(() => audioEl.play().catch(()=>{}), 500);
   });
+
+  // HIDE NOW PLAYING WHEN SONG ENDS
+  audioEl.onended = () => {
+    nowPlayingBar.classList.remove("show");
+  };
 }
+
 
 /* CREATE ALL DOORS */
 for (let n = 1; n <= 25; n++) {
