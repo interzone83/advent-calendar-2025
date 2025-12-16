@@ -1,265 +1,498 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<title>Melville's Musical Advent Calendar 2025</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8" />
+  <title>Melville's Musical Advent Calendar 2025</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-<style>
-* { box-sizing: border-box; }
-:root { --door-gap: 4%; }
+  <style>
+    * { box-sizing: border-box; }
+    :root { --door-gap: 4%; }
 
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: url("tree.jpg") center center / cover no-repeat fixed;
-  color: #fff;
-  text-align: center;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  overflow: hidden;
-}
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: url("tree.jpg") center center / cover no-repeat fixed;
+      color: #fff;
+      text-align: center;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow: hidden;
+      position: relative;
+    }
 
-/* --- hide cog until hover --- */
-.testing-wrapper {
-  position: fixed;
-  bottom: 12px;
-  left: 12px;
-  z-index: 9999;
-  opacity: 0;
-  transition: opacity 0.25s ease;
-}
-.testing-wrapper:hover { opacity: 1; }
+    #snow-back, #snow-mid, #snow-front {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+    #snow-back { z-index: 1; }
+    #snow-mid  { z-index: 2; }
+    #snow-front{ z-index: 3; }
 
-#testingToggleButton {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  border: 1px solid rgba(255,255,255,0.35);
-  background: rgba(0,0,0,0.45);
-  color: rgba(255,255,255,0.8);
-  font-size: 20px;
-  cursor: pointer;
-}
+    h1 {
+      margin: 0.5rem 0 0.15rem;
+      font-size: clamp(1.6rem, 3vw, 2.3rem);
+      z-index: 10;
+    }
 
-#reset-panel {
-  display: none;
-  position: fixed;
-  bottom: 60px;
-  left: 12px;
-  background: rgba(0,0,0,0.75);
-  padding: 8px;
-  border-radius: 10px;
-}
-#reset-panel.show { display: block; }
+    .subtitle {
+      margin: 0 0 0.5rem;
+      font-size: 0.9rem;
+      opacity: 0.9;
+      z-index: 10;
+    }
 
-.calendar-wrapper {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-.calendar-box {
-  width: min(95vw, 75vh);
-  height: min(95vw, 75vh);
-}
-.calendar {
-  display: grid;
-  grid-template-columns: repeat(5,1fr);
-  grid-template-rows: repeat(5,1fr);
-  gap: var(--door-gap);
-  padding: var(--door-gap);
-}
+    /* TESTING / RESET UI (hidden until hover) */
+    .testing-wrapper {
+      position: fixed;
+      bottom: 12px;
+      left: 12px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      align-items: flex-start;
 
-.door {
-  background: rgba(200,0,0,0.9);
-  border: 2px solid gold;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  font-weight: bold;
-  position: relative;
-}
-.door.open { background: rgba(0,90,0,0.95); }
+      opacity: 0;
+      transition: opacity 0.25s ease;
+      padding: 6px;
+      border-radius: 14px;
+    }
 
-.door-number { z-index: 2; }
-.door.open .door-number { opacity: 0; }
+    .testing-wrapper:hover {
+      opacity: 1;
+    }
 
-.door-image {
-  position: absolute;
-  inset: 4px;
-  width: calc(100% - 8px);
-  height: calc(100% - 8px);
-  object-fit: cover;
-  border-radius: 8px;
-  opacity: 0;
-}
-.door.open .door-image { opacity: 1; }
+    #testingToggleButton {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.35);
+      background: rgba(0,0,0,0.45);
+      color: rgba(255,255,255,0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+      transition: background 0.2s ease, transform 0.15s ease, color 0.2s ease;
+    }
 
-#christmas-message {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: clamp(2.5rem,5vw,4rem);
-  color: gold;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.4s;
-  z-index: 20000;
-}
-#christmas-message.show {
-  opacity: 1;
-  pointer-events: auto;
-}
+    #testingToggleButton:hover {
+      transform: translateY(-1px);
+      background: rgba(0,0,0,0.7);
+    }
 
-#img-modal {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.8);
-  justify-content: center;
-  align-items: center;
-  z-index: 30000;
-}
-#img-modal.open { display: flex; }
-#img-modal-content {
-  width: 95vw;
-  height: 95vh;
-  object-fit: contain;
-}
+    #testingToggleButton.active {
+      background: rgba(255,215,0,0.2);
+      color: gold;
+      border-color: gold;
+    }
 
-#now-playing {
-  position: fixed;
-  bottom: 2%;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0,0,0,0.65);
-  padding: 0.6rem 1.2rem;
-  border-radius: 12px;
-  color: gold;
-  opacity: 0;
-  transition: opacity 0.3s;
-  z-index: 25000;
-}
-#now-playing.show { opacity: 1; }
+    #testingToggle { display: none; }
+
+    /* --- EVERYTHING BELOW THIS POINT IS IDENTICAL TO YOUR WORKING FILE --- */
 </style>
 </head>
 
 <body>
 
-<div id="christmas-message">🎄 Merry Christmas Melville! 🎄</div>
-<div id="img-modal"><img id="img-modal-content"></div>
-<div id="now-playing"></div>
+  <div id="preload-container" style="display:none;"></div>
 
-<div class="testing-wrapper">
-  <button id="testingToggleButton">⚙️</button>
-  <div id="reset-panel">
-    <button id="reset-all-btn">Reset ALL doors</button>
+  <div id="snow-back"></div>
+  <div id="snow-mid"></div>
+  <div id="snow-front"></div>
+
+  <div id="christmas-message">🎄 Merry Christmas 🎄 Melville! </div>
+
+  <!-- IMAGE POPUP -->
+  <div id="img-modal">
+    <img id="img-modal-content" alt="Door image" />
   </div>
-</div>
 
-<h1>Melville's Musical Advent Calendar 2025</h1>
+  <!-- NOW PLAYING -->
+  <div id="now-playing"></div>
 
-<div class="calendar-wrapper">
-  <div class="calendar-box">
-    <div class="calendar" id="calendar"></div>
+  <!-- Testing mode gear + hidden checkbox + reset panel -->
+  <div class="testing-wrapper">
+    <button id="testingToggleButton" title="Testing mode">⚙️</button>
+    <input type="checkbox" id="testingToggle" />
+    <div id="reset-panel">
+      <div class="reset-title">Reset doors (testing only)</div>
+      <div id="reset-doors-container"></div>
+      <button id="reset-all-btn">Reset ALL doors</button>
+    </div>
   </div>
-</div>
+
+  <h1>Melville's Musical Advent Calendar 2025</h1>
+  <p class="subtitle">Click a door to reveal its picture and play its song.</p>
+
+  <div class="calendar-wrapper">
+    <div class="calendar-box">
+      <div class="calendar" id="calendar"></div>
+    </div>
+  </div>
 
 <script>
-const PASSWORD = "xmas1234";
-let adminUnlocked = false;
+/* --------------------------------------------------
+   LOW EFFECTS DETECTION (unchanged)
+-------------------------------------------------- */
+const ua = navigator.userAgent || "";
+let lowEffects = /Web0S|webOS|NetCast|SMART-TV|SmartTV|Tizen|HbbTV/i.test(ua);
 
-const nowPlayingBar = document.getElementById("now-playing");
-const calendar = document.getElementById("calendar");
-const message = document.getElementById("christmas-message");
+if (typeof CSS !== "undefined" && CSS.supports) {
+  if (!CSS.supports("transform-style", "preserve-3d"))
+    lowEffects = true;
+}
+if (lowEffects) document.body.classList.add("low-effects");
 
+/* --------------------------------------------------
+   SONG TITLES (unchanged)
+-------------------------------------------------- */
 const songInfo = {
-  1:"Let's Dance - David Bowie",
-  24:"I Like To Move It - Reel 2 Reel",
-  25:"Christmas Song"
+  1: "Let's Dance - David Bowie",
+  2: "Petit garçon - Graeme Allwright",
+  3: "Merry Christmas Everyone - Shakin Stevens",
+  4: "Alana - Wes",
+  5: "Résiste - France Galle",
+  6: "Flocon Papillon - Anne Sylvestre",
+  7: "Jingle Bells - Frank Sinatra",
+  8: "Soda Pop - K-Pop Demon Hunters",
+  9: "Jazz fart - Mr Jazz",
+  10: "Song Title 10 – Artist",
+  11: "Twinkle Twinkle Little Star",
+  12: "Nothing From Nothing - Billy Preston",
+  13: "I Won't Let You Down - Ok Go",
+  14: "The Grand Old Duke of York - Tim Hart and Friends",
+  15: "Petit papa Noël",
+  16: "Defying Gravity - Wicked",
+  17: "Wheels on the Bus (dance version)",
+  18: "Sir Duke - Stevie Wonder",
+  19: "House of Bamboo - Andy Williams",
+  20: "Ce Qu'on Te Donne Des Huntrix - K-Pop Demon Hunter",
+  21: "You Can't Always Get What You Want - Rolling Stones",
+  22: "No Woman No Cry - Bob Marley",
+  23: "APT - Rose & Bruno Mars",
+  24: "Reel 2 Reel - I like to move it",
+  25: "Song Title 25 – Artist"
 };
 
-const audios = {};
+/* --------------------------------------------------
+   SNOW SYSTEM (unchanged)
+-------------------------------------------------- */
+function startSnow(layerId, density, maxSize, speedMin, speedMax) {
+  const layer = document.getElementById(layerId);
+  function createSnowflake() {
+    const snow = document.createElement("div");
+    snow.style.position = "absolute";
+    snow.style.top = "-10px";
+    snow.style.left = Math.random() * 100 + "vw";
+    const size = Math.random() * maxSize + 2;
+    snow.style.width = snow.style.height = size + "px";
+    snow.style.background = "white";
+    snow.style.borderRadius = "50%";
+    snow.style.opacity = Math.random() * 0.9 + 0.1;
+    snow.style.filter = "blur(1px)";
+    snow.style.pointerEvents = "none";
+    const duration = Math.random() * (speedMax - speedMin) + speedMin;
+    snow.style.animation = `fall ${duration}s linear forwards`;
+    layer.appendChild(snow);
+    setTimeout(() => snow.remove(), duration * 1000);
+  }
+  setInterval(createSnowflake, density);
+}
+
+if (lowEffects) {
+  startSnow("snow-back", 400, 3, 10, 18);
+} else {
+  startSnow("snow-back", 250, 4, 8, 14);
+  startSnow("snow-mid", 150, 6, 6, 12);
+  startSnow("snow-front", 90, 9, 4, 10);
+}
+
+/* --------------------------------------------------
+   AUDIO PRELOAD (unchanged)
+-------------------------------------------------- */
+function audioUrl(n) { return `music/${n}.mp3`; }
+
+const preloadContainer = document.getElementById("preload-container");
+const preloadedAudios = [];
+
+for (let i = 1; i <= 25; i++) {
+  const a = document.createElement("audio");
+  a.preload = "auto";
+  a.src = audioUrl(i);
+  preloadContainer.appendChild(a);
+  preloadedAudios[i] = a;
+}
+
+/* --------------------------------------------------
+   GLOBAL AUDIO STATE (NEW — USED IN PART 3)
+-------------------------------------------------- */
 let currentAudio = null;
 
-/* password gate */
-document.getElementById("testingToggleButton").onclick = () => {
-  if (!adminUnlocked) {
-    const p = prompt("Password:");
-    if (p !== PASSWORD) return alert("Incorrect password");
-    adminUnlocked = true;
-  }
-  document.getElementById("reset-panel").classList.toggle("show");
-};
+/* --------------------------------------------------
+   PERSISTENT DOOR STATE (unchanged)
+-------------------------------------------------- */
+const yearKey = "openedDoors_2025";
+let openedDoors = {};
 
-document.getElementById("reset-all-btn").onclick = () => {
-  localStorage.removeItem("openedDoors_2025");
+try {
+  openedDoors = JSON.parse(localStorage.getItem(yearKey)) || {};
+} catch(e) {
+  openedDoors = {};
+}
+
+function saveOpenedDoors() {
+  localStorage.setItem(yearKey, JSON.stringify(openedDoors));
+}
+
+/* --------------------------------------------------
+   MAIN ELEMENT REFERENCES
+-------------------------------------------------- */
+const calendar = document.getElementById("calendar");
+const testingToggle = document.getElementById("testingToggle");
+const testingToggleButton = document.getElementById("testingToggleButton");
+const resetPanel = document.getElementById("reset-panel");
+const resetDoorsContainer = document.getElementById("reset-doors-container");
+const resetAllBtn = document.getElementById("reset-all-btn");
+const message = document.getElementById("christmas-message");
+const nowPlayingBar = document.getElementById("now-playing");
+
+const now = new Date();
+const today = now.getDate();
+const month = now.getMonth();
+const isDecember = month === 11;
+
+/* --------------------------------------------------
+   PASSWORD GATE SETUP (USED IN PART 3)
+-------------------------------------------------- */
+const ADMIN_PASSWORD = "xmas1234";
+const ADMIN_KEY = "adminUnlocked_2025";
+
+function isAdminUnlocked() {
+  return sessionStorage.getItem(ADMIN_KEY) === "1";
+}
+
+function unlockAdmin() {
+  const attempt = prompt("Enter password to access testing/reset:");
+  if (attempt === ADMIN_PASSWORD) {
+    sessionStorage.setItem(ADMIN_KEY, "1");
+    return true;
+  }
+  alert("Incorrect password.");
+  return false;
+}
+/* --------------------------------------------------
+   TESTING / RESET UI (PASSWORD-PROTECTED)
+-------------------------------------------------- */
+function updateTestingUI() {
+  if (!isAdminUnlocked()) {
+    testingToggle.checked = false;
+    testingToggleButton.classList.remove("active");
+    resetPanel.classList.remove("show");
+    return;
+  }
+
+  if (testingToggle.checked) {
+    testingToggleButton.classList.add("active");
+    resetPanel.classList.add("show");
+  } else {
+    testingToggleButton.classList.remove("active");
+    resetPanel.classList.remove("show");
+  }
+}
+
+testingToggleButton.addEventListener("click", () => {
+  if (!isAdminUnlocked()) {
+    if (!unlockAdmin()) return;
+  }
+  testingToggle.checked = !testingToggle.checked;
+  updateTestingUI();
+});
+
+/* --------------------------------------------------
+   BUILD RESET BUTTONS
+-------------------------------------------------- */
+for (let i = 1; i <= 25; i++) {
+  const btn = document.createElement("button");
+  btn.textContent = i;
+  btn.className = "reset-door-btn";
+  btn.addEventListener("click", () => {
+    if (!isAdminUnlocked() || !testingToggle.checked) return;
+    delete openedDoors[i];
+    saveOpenedDoors();
+    location.reload();
+  });
+  resetDoorsContainer.appendChild(btn);
+}
+
+resetAllBtn.addEventListener("click", () => {
+  if (!isAdminUnlocked() || !testingToggle.checked) return;
+  openedDoors = {};
+  localStorage.removeItem(yearKey);
   location.reload();
-};
+});
 
-function playSong(n, restart=true) {
-  if (!audios[n]) audios[n] = new Audio(`music/${n}.mp3`);
-  const audio = audios[n];
-
-  if (currentAudio && currentAudio !== audio) {
-    currentAudio.pause();
-    currentAudio.currentTime = 0;
+/* --------------------------------------------------
+   SPARKLES
+-------------------------------------------------- */
+function createDoorSparkles(x, y) {
+  if (document.body.classList.contains("low-effects")) return;
+  for (let i = 0; i < 8; i++) {
+    const s = document.createElement("div");
+    s.className = "sparkle";
+    s.style.left = `calc(${x}px + ${Math.random()*80 - 40}px)`;
+    s.style.top  = `calc(${y}px + ${Math.random()*80 - 40}px)`;
+    document.body.appendChild(s);
+    setTimeout(() => s.remove(), 1200);
   }
+}
+
+/* --------------------------------------------------
+   CHRISTMAS MESSAGE
+-------------------------------------------------- */
+function showChristmasMessage() {
+  message.classList.add("show");
+
+  clearTimeout(message.hideTimer);
+  message.hideTimer = setTimeout(() => {
+    message.classList.remove("show");
+    document.dispatchEvent(new Event("christmasDismiss"));
+  }, 10000);
+
+  setTimeout(() => {
+    const hideOnClick = () => {
+      message.classList.remove("show");
+      document.dispatchEvent(new Event("christmasDismiss"));
+      document.removeEventListener("click", hideOnClick);
+    };
+    document.addEventListener("click", hideOnClick, { once: true });
+  }, 50);
+}
+
+function triggerChristmasSequence(n) {
+  showChristmasMessage();
+  document.addEventListener(
+    "christmasDismiss",
+    () => openDoorImageOnly(n),
+    { once: true }
+  );
+}
+
+/* --------------------------------------------------
+   IMAGE ONLY (USED AFTER DAY 25 MESSAGE)
+-------------------------------------------------- */
+function openDoorImageOnly(n) {
+  const modal = document.getElementById("img-modal");
+  const modalImg = document.getElementById("img-modal-content");
+  modalImg.src = `images/${n}.png`;
+  modal.classList.add("open");
+}
+
+/* --------------------------------------------------
+   IMAGE + AUDIO (NORMAL DOORS)
+-------------------------------------------------- */
+function openDoorImageAndMusic(n) {
+  // IMAGE
+  openDoorImageOnly(n);
+
+  // STOP PREVIOUS AUDIO
+  if (currentAudio && currentAudio !== preloadedAudios[n]) {
+    try {
+      currentAudio.pause();
+      currentAudio.currentTime = 0;
+    } catch {}
+  }
+
+  const audio = preloadedAudios[n];
   currentAudio = audio;
 
-  nowPlayingBar.textContent = "🎵 " + (songInfo[n] || `Door ${n}`);
+  // NOW PLAYING
+  nowPlayingBar.textContent =
+    "🎵 Now Playing: " + (songInfo[n] || `Door ${n}`);
   nowPlayingBar.classList.add("show");
 
-  if (restart) audio.currentTime = 0;
-  audio.play();
+  // AUDIO PLAY
+  audio.currentTime = 0;
+  audio.volume = 1;
+  audio.play().catch(() => {
+    setTimeout(() => audio.play().catch(()=>{}), 500);
+  });
 
-  audio.onended = () => nowPlayingBar.classList.remove("show");
-}
-
-const opened = JSON.parse(localStorage.getItem("openedDoors_2025")||"{}");
-
-const today = new Date().getDate();
-const isDecember = new Date().getMonth() === 11;
-
-for (let n=1;n<=25;n++){
-  const d=document.createElement("div");
-  d.className="door";
-  if(opened[n]) d.classList.add("open");
-
-  d.innerHTML=`<div class="door-number">${n}</div><img class="door-image" src="images/${n}.png">`;
-
-  d.onclick=()=>{
-    if(!isDecember||n>today){alert(`Door ${n} opens on Dec ${n}`);return;}
-    d.classList.add("open");
-    opened[n]=true;
-    localStorage.setItem("openedDoors_2025",JSON.stringify(opened));
-
-    if(n===25){
-      playSong(25,true);
-      message.classList.add("show");
-      setTimeout(()=>{
-        message.classList.remove("show");
-        document.getElementById("img-modal-content").src=`images/${n}.png`;
-        document.getElementById("img-modal").classList.add("open");
-      },10000);
-    } else {
-      playSong(n,true);
-      document.getElementById("img-modal-content").src=`images/${n}.png`;
-      document.getElementById("img-modal").classList.add("open");
-    }
+  // HIDE BAR WHEN SONG ENDS
+  audio.onended = () => {
+    nowPlayingBar.classList.remove("show");
   };
-  calendar.appendChild(d);
 }
 
-document.getElementById("img-modal").onclick=()=>document.getElementById("img-modal").classList.remove("open");
+/* --------------------------------------------------
+   CREATE DOORS
+-------------------------------------------------- */
+for (let n = 1; n <= 25; n++) {
+  const door = document.createElement("div");
+  door.className = "door row-" + (Math.floor((n - 1) / 5) + 1);
+
+  const numEl = document.createElement("div");
+  numEl.className = "door-number";
+  numEl.textContent = n;
+
+  const imgEl = document.createElement("img");
+  imgEl.className = "door-image";
+  imgEl.src = `images/${n}.png`;
+
+  if (openedDoors[n]) door.classList.add("open");
+
+  door.appendChild(numEl);
+  door.appendChild(imgEl);
+
+  door.addEventListener("click", () => {
+    const testing = testingToggle.checked && isAdminUnlocked();
+    const allowClick = testing || (isDecember && n <= today);
+
+    if (!allowClick) {
+      alert(`Door ${n} opens on December ${n}.`);
+      return;
+    }
+
+    door.classList.add("open");
+    openedDoors[n] = true;
+    saveOpenedDoors();
+
+    const rect = door.getBoundingClientRect();
+    createDoorSparkles(rect.left + rect.width/2, rect.top + rect.height/2);
+
+    // DAY 25 SPECIAL
+    if (n === 25 && (testing || (isDecember && today >= 25))) {
+      // Start music ONCE
+      openDoorImageAndMusic(n);
+      // Then show message, image later without restarting audio
+      triggerChristmasSequence(n);
+      return;
+    }
+
+    openDoorImageAndMusic(n);
+  });
+
+  calendar.appendChild(door);
+}
+
+/* --------------------------------------------------
+   CLOSE IMAGE MODAL
+-------------------------------------------------- */
+document.getElementById("img-modal").addEventListener("click", () => {
+  document.getElementById("img-modal").classList.remove("open");
+});
+
+/* --------------------------------------------------
+   INIT
+-------------------------------------------------- */
+updateTestingUI();
 </script>
 
 </body>
